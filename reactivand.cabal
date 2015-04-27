@@ -57,11 +57,23 @@ executable reactivand
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.8 && <4.9
+  build-depends:       async >= 2.0
+                     , base >=4.8 && <4.9
+                     , containers >= 0.5
+                     , data-default >= 0.5
+                     , dependent-map >= 0.1
+                     , dependent-sum >= 0.2
+                     , lens >= 4.9
+                     , process >= 1.2
+                     , reflex >= 0.1
+                     , stm >= 2.4
+                     , transformers >= 0.4
+                     , wlc-hs
+                     , xkbcommon >= 0.0.1
   
   -- Directories containing source files.
   hs-source-dirs:      src
   
   -- Base language which the package is written in.
   default-language:    Haskell2010
-  
+  ghc-options: -Wall -threaded
