@@ -5,6 +5,7 @@ module Types
   ( Tag(..)
   , Key(..)
   , ViewCreated(..)
+  , ViewDestroyed(..)
   , OutputCreated(..)
   , WindowManager
   , StackSetChange
@@ -23,11 +24,13 @@ import StackSet
 data Tag a where
      TKey :: Tag Key
      TViewCreated :: Tag ViewCreated
+     TViewDestroyed :: Tag ViewDestroyed
      TOutputCreated :: Tag OutputCreated
 
 instance GEq Tag where
   geq TKey TKey = Just Refl
   geq TViewCreated TViewCreated = Just Refl
+  geq TViewDestroyed TViewDestroyed = Just Refl
   geq TOutputCreated TOutputCreated = Just Refl
   geq _ _ = Nothing
 
@@ -36,9 +39,15 @@ instance GCompare (Tag) where
   gcompare TKey _ = GLT
   gcompare TViewCreated TKey = GGT
   gcompare TViewCreated TViewCreated = GEQ
+  gcompare TViewCreated TViewDestroyed = GLT
   gcompare TViewCreated TOutputCreated = GLT
+  gcompare TViewDestroyed TKey = GGT
+  gcompare TViewDestroyed TViewCreated = GGT
+  gcompare TViewDestroyed TViewDestroyed = GEQ
+  gcompare TViewDestroyed TOutputCreated = GGT
   gcompare TOutputCreated TKey = GGT
   gcompare TOutputCreated TViewCreated = GGT
+  gcompare TOutputCreated TViewDestroyed = GGT
   gcompare TOutputCreated TOutputCreated = GEQ
 
 data Key =
@@ -50,6 +59,8 @@ data Key =
 data ViewCreated =
   ViewCreated WLCHandle WLCHandle
   deriving (Show,Eq,Ord)
+
+data ViewDestroyed = ViewDestroyed WLCHandle
 
 data OutputCreated = OutputCreated WLCHandle deriving (Show,Eq,Ord)
 

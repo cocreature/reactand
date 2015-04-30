@@ -27,9 +27,10 @@ reactand e =
        reactiveViewCreated (select selector TViewCreated)
      outputCreatedEv <-
        reactiveOutputCreated (select selector TOutputCreated)
+     viewDestroyedEv <- viewDestroyed (select selector TViewDestroyed)
      let (stacksetChanges,actions) =
            unzip . fmap splitE $
-           [keyEv,viewCreatedEv,outputCreatedEv]
+           [keyEv,viewCreatedEv,outputCreatedEv,viewDestroyedEv]
      stacksetChanges' <-
        -- apply accumulated changes to stackset
        mapDyn (\stackSet -> print stackSet >> relayout stackSet) =<<
@@ -56,12 +57,32 @@ reactiveKey =
 -- | react to a newly created view
 reactiveViewCreated :: (Reflex t,MonadHold t m,MonadFix m)
                     => Event t ViewCreated
-                    -> m (Event t (StackSetChange String (DefaultLayout WLCHandle) WLCHandle CULong,IO ()))
+                    -> m (Event t (StackSetChange String
+                                                  (DefaultLayout WLCHandle)
+                                                  WLCHandle CULong,
+                                   IO ()))
 reactiveViewCreated =
   return .
-  fmapMaybe (\(ViewCreated view output) ->
-               Just (\stackset -> insertViewInOutput stackset view output,wlcViewFocus view))
+  fmap (\(ViewCreated view output) ->
+               (\stackset ->
+                       insertViewInOutput stackset view output
+                    ,wlcViewFocus view))
 
-reactiveOutputCreated :: (Reflex t,MonadHold t m,MonadFix m) => Event t OutputCreated -> m (Event t (StackSetChange i l a WLCHandle, IO ()))
+viewDestroyed :: (Reflex t,MonadHold t m,MonadFix m)
+              => Event t ViewDestroyed
+              -> m (Event t (StackSetChange String
+                                            (DefaultLayout WLCHandle)
+                                            WLCHandle CULong,
+                             IO ()))
+viewDestroyed =
+  return .
+  fmap (\(ViewDestroyed view) ->
+          (deleteFromStackSet view,return ()))
+
+reactiveOutputCreated :: (Reflex t,MonadHold t m,MonadFix m)
+                      => Event t OutputCreated
+                      -> m (Event t (StackSetChange i l a WLCHandle,IO ()))
 reactiveOutputCreated =
-  return . fmapMaybe (\(OutputCreated output) -> Just (createOutput output,return ()))
+  return .
+  fmapMaybe (\(OutputCreated output) ->
+               Just (createOutput output,return ()))

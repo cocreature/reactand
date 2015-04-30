@@ -3,15 +3,16 @@
 {-# LANGUAGE DeriveFoldable #-}
 
 module StackSet
-  (Stack(..)
-  ,StackSet(..)
-  ,Workspace(..)
-  ,Screen(..)
-  ,insertUp
-  ,modify
-  ,viewWorkspace
-  ,with
-  ,createOutput
+  ( Stack(..)
+  , StackSet(..)
+  , Workspace(..)
+  , Screen(..)
+  , insertUp
+  , modify
+  , deleteFromStackSet
+  , viewWorkspace
+  , with
+  , createOutput
   ) where
 
 import Data.List
@@ -41,25 +42,43 @@ data Screen i l a sid =
          ,screen :: !sid}
   deriving (Show,Read,Eq)
 
-deleteFromWorkspace :: a -> Workspace i l a -> (Workspace i l a,Bool)
-deleteFromWorkspace view w@(Workspace _ _ _ Nothing) = (w,False)
---deleteFromWorkspace view w@(Workspace _ _ _ (Just stack)) = _
+deleteFromStackSet :: Eq a => a -> StackSet i l a sid -> StackSet i l a sid
+deleteFromStackSet a (StackSet current visible hidden) =
+  StackSet (deleteFromScreen a <$> current)
+           (deleteFromScreen a <$> visible)
+           (deleteFromWorkspace a <$> hidden)
 
-deleteFromStack :: a -> Stack a -> (Maybe (Stack a),Bool)
+deleteFromScreen :: Eq a => a -> Screen i l a sid -> Screen i l a sid
+deleteFromScreen a (Screen workspace sid) =
+  Screen (deleteFromWorkspace a workspace) sid
+
+deleteFromWorkspace :: Eq a => a -> Workspace i l a -> Workspace i l a
+deleteFromWorkspace view w@(Workspace _ _ _ Nothing) = w
+deleteFromWorkspace view w@(Workspace _ _ _ (Just stack)) =
+  w {stack =
+       fst $
+       deleteFromStack view stack}
+
+-- | try removing the supplied element from the stack, if it currently
+-- focused use the next lower element
+deleteFromStack :: Eq a => a -> Stack a -> (Maybe (Stack a), Bool)
+deleteFromStack a (Stack focus [] [])
+  | focus == a = (Nothing, True)
+  | otherwise = (Just (Stack focus [] []), False)
 deleteFromStack a (Stack focus [] down) =
   deleteFromStack a
                   (Stack focus (reverse down) [])
-{-deleteFromStack a (Stack focus (x:xs) down)
-  | a == xs = (Stack x xs down,True)
-  | (up,True) <- delete' a (x:xs) = (Stack focus up down,True)
-  | (down',True) <- delete' a down = (Stack focus (x:xs) down',True)
-  | otherwise = (Stack focus (x:xs) down,False)-}
+deleteFromStack a (Stack focus (x:xs) down)
+  | focus == a = (Just (Stack x xs down),True)
+  | (up,True) <- delete' a (x:xs) = (Just (Stack focus up down),True)
+  | (down',True) <- delete' a down = (Just (Stack focus (x:xs) down'),True)
+  | otherwise = (Just (Stack focus (x:xs) down),False)
 
 delete' :: Eq a => a -> [a] -> ([a],Bool)
 delete' a xs =
   case break (== a) xs of
-    (us,[]) -> (xs,False)
-    (us,v:vs) -> (us ++ vs,True)
+    (_,[]) -> (xs,False)
+    (us,_:vs) -> (us ++ vs,True)
 
 viewWorkspace :: (Eq i,Eq sid)
               => i -> StackSet i l a sid -> StackSet i l a sid

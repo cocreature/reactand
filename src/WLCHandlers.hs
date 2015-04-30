@@ -22,10 +22,12 @@ runWLC messages action = do
   keyboardKeyW <- wrapKey (kKey messages action)
   viewCreatedW <- wrapCreated (vCreated messages action)
   viewFocusW <- wrapFocus vFocus
+  viewDestroyedW <- wrapDestroyed (vDestroyed messages action)
   outputCreatedW <- wrapCreated (oCreated messages action)
   _ <- wlcInit (def & WLC.keyboard . keyboardKey .~ keyboardKeyW
                     & WLC.view . viewCreated .~ viewCreatedW
                     & WLC.view . viewFocus .~ viewFocusW
+                    & WLC.view . viewDestroyed .~ viewDestroyedW
                     & WLC.output . outputCreated .~ outputCreatedW) []
   wlcRun
   wlcTerminate
@@ -69,9 +71,17 @@ vFocus view focus =
                      WlcBitActivated
                      (focus /= 0)
 
+vDestroyed :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> IO ()
+vDestroyed messages action view =
+  do writeChan messages (TViewDestroyed :=> ViewDestroyed view)
+     act <- takeMVar action
+     act
+
 oCreated :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> IO CBool
 oCreated messages action output =
-         do writeChan messages (TOutputCreated :=> OutputCreated output)
-            act <- takeMVar action
-            act
-            return 1
+  do writeChan messages
+               (TOutputCreated :=>
+                OutputCreated output)
+     act <- takeMVar action
+     act
+     return 1
