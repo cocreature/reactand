@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 module Layout 
@@ -11,14 +12,12 @@ import Foreign.C.Types
 import StackSet
 import Data.Foldable
 import Data.List
-import WLC
-
-type StackSet' = StackSet String (DefaultLayout WLCHandle) WLCHandle WLCHandle
+import WLC hiding (size)
 
 class (Show (layout a)) => LayoutClass layout a where
   pureLayout :: layout a -> WLCSize -> Stack a -> [(a,WLCGeometry)]
 
-data DefaultLayout a = DefaultLayout deriving Show
+data DefaultLayout a = DefaultLayout deriving (Show,Eq,Ord)
 
 instance (Show a) => LayoutClass DefaultLayout a where
   pureLayout _ size stack =
@@ -40,19 +39,23 @@ calculateGeometry total i (WLCSize resW resH)
         w = resW `div` 2
         h = resH `div` ((fromIntegral total + 1) `div` 2)
 
-relayout :: StackSet i (DefaultLayout WLCHandle) WLCHandle WLCHandle -> IO ()
+relayout :: LayoutClass l WLCHandle
+         => StackSet i (l WLCHandle) WLCHandle WLCHandle -> IO ()
 relayout (StackSet current visible _) = do
   mapM_ layoutScreen current
   mapM_ (wlcViewFocus . focus) (stack . workspace =<< current)
   mapM_ layoutScreen visible
 
-layoutScreen :: Screen i (DefaultLayout WLCHandle) WLCHandle WLCHandle -> IO ()
+layoutScreen :: LayoutClass l WLCHandle
+             => Screen i (l WLCHandle) WLCHandle WLCHandle -> IO ()
 layoutScreen (Screen w sid) = do
   res <- wlcOutputGetResolution sid
   wlcOutputSetMask sid (mask w)
   layoutWorkspace res w
 
-layoutWorkspace :: WLCSize -> Workspace i (DefaultLayout WLCHandle) WLCHandle -> IO ()
+-- | Resize all views on the workspace according to the current layout
+layoutWorkspace :: LayoutClass l WLCHandle
+                => WLCSize -> Workspace i (l WLCHandle) WLCHandle -> IO ()
 layoutWorkspace _ (Workspace _ _ _ Nothing) = return ()
 layoutWorkspace size' (Workspace _ layout mask (Just a)) = do
   mapM_ (\(view,geometry) ->
@@ -61,7 +64,11 @@ layoutWorkspace size' (Workspace _ layout mask (Just a)) = do
               wlcViewSetMask view mask)
         (pureLayout layout size' a)
 
-insertViewInOutput :: StackSet' -> WLCHandle -> WLCHandle -> StackSet'
+-- | insert the view into workspace that is focused on the output
+insertViewInOutput :: StackSet i l WLCHandle WLCHandle
+                   -> WLCHandle
+                   -> WLCHandle
+                   -> StackSet i l WLCHandle WLCHandle
 insertViewInOutput s view output =
   modify (Just (Stack view [] []))
          (Just . insertUp view)
