@@ -84,5 +84,5 @@ reactiveOutputCreated :: (Reflex t,MonadHold t m,MonadFix m)
                       -> m (Event t (StackSetChange i l a WLCHandle,IO ()))
 reactiveOutputCreated =
   return .
-  fmapMaybe (\(OutputCreated output) ->
-               Just (createOutput output,return ()))
+  fmap (\(OutputCreated output) ->
+          (createOutput output,return ()))
