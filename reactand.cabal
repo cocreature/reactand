@@ -54,7 +54,7 @@ executable reactand
   -- other-modules:       
   
   -- LANGUAGE extensions used by modules in this package.
-  -- other-extensions:    
+  other-extensions:    TemplateHaskell
   
   -- Other library packages from which modules are imported.
   build-depends:       async >= 2.0
@@ -67,6 +67,7 @@ executable reactand
                      , process >= 1.2
                      , reflex >= 0.1
                      , stm >= 2.4
+                     , template-haskell >= 2.10
                      , transformers >= 0.4
                      , wlc-hs
                      , xkbcommon >= 0.0.1

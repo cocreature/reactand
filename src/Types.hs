@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE GADTs #-}
 
@@ -20,35 +21,13 @@ import Text.XkbCommon
 import WLC
 
 import StackSet
+import TH
 
 data Tag a where
      TKey :: Tag Key
      TViewCreated :: Tag ViewCreated
      TViewDestroyed :: Tag ViewDestroyed
      TOutputCreated :: Tag OutputCreated
-
-instance GEq Tag where
-  geq TKey TKey = Just Refl
-  geq TViewCreated TViewCreated = Just Refl
-  geq TViewDestroyed TViewDestroyed = Just Refl
-  geq TOutputCreated TOutputCreated = Just Refl
-  geq _ _ = Nothing
-
-instance GCompare (Tag) where
-  gcompare TKey TKey = GEQ
-  gcompare TKey _ = GLT
-  gcompare TViewCreated TKey = GGT
-  gcompare TViewCreated TViewCreated = GEQ
-  gcompare TViewCreated TViewDestroyed = GLT
-  gcompare TViewCreated TOutputCreated = GLT
-  gcompare TViewDestroyed TKey = GGT
-  gcompare TViewDestroyed TViewCreated = GGT
-  gcompare TViewDestroyed TViewDestroyed = GEQ
-  gcompare TViewDestroyed TOutputCreated = GGT
-  gcompare TOutputCreated TKey = GGT
-  gcompare TOutputCreated TViewCreated = GGT
-  gcompare TOutputCreated TViewDestroyed = GGT
-  gcompare TOutputCreated TOutputCreated = GEQ
 
 data Key =
   Key WLCKeyState
@@ -66,3 +45,6 @@ data OutputCreated = OutputCreated WLCHandle deriving (Show,Eq,Ord)
 
 type WindowManager t m = (Reflex t,MonadHold t m,MonadFix m) => Event t (DSum Tag) -> m (Event t (IO ()))
 type StackSetChange i l a sid = StackSet i l a sid -> StackSet i l a sid
+
+makeGEqInstance ''Tag
+makeGCompareInstance ''Tag
