@@ -52,17 +52,24 @@ key :: (Reflex t,MonadHold t m,MonadFix m)
 key =
   return .
   fmapMaybe (\case
-               Key WlcKeyStatePressed sym mods ->
-                 if mods ==
-                    fromList [WlcBitModAlt] &&
-                    sym == keysym_Return
-                    then Just (id
-                              ,void $
-                               spawnCommand "weston-terminal")
-                    else Nothing
+               Key WlcKeyStatePressed sym mods
+                 | mods ==
+                     fromList [WlcBitModAlt] &&
+                     sym == keysym_Return ->
+                   Just (id
+                        ,void $
+                         spawnCommand "weston-terminal")
+                 | mods ==
+                     fromList [WlcBitModAlt] &&
+                     sym == keysym_n ->
+                   Just (focusDown,return ())
+                 | mods ==
+                     fromList [WlcBitModAlt] &&
+                     sym == keysym_m ->
+                   Just (focusUp,return ())
                _ -> Nothing)
 
--- | react to a newly created view
+-- | react to a new view
 viewCreated :: (Reflex t,MonadHold t m,MonadFix m)
                      => Event t ViewCreated
                      -> m (Event t (StackSetChange String
@@ -76,6 +83,7 @@ viewCreated =
                        insertViewInOutput stackset view output
                     ,wlcViewFocus view))
 
+-- | react to destroyed view
 viewDestroyed :: (Reflex t,MonadHold t m,MonadFix m)
               => Event t ViewDestroyed
               -> m (Event t (StackSetChange String
@@ -87,6 +95,7 @@ viewDestroyed =
   fmap (\(ViewDestroyed view) ->
           (deleteFromStackSet view,return ()))
 
+-- | react to new output
 outputCreated :: (Reflex t,MonadHold t m,MonadFix m)
                        => Event t OutputCreated
                        -> m (Event t (StackSetChange i l a WLCHandle,IO ()))
@@ -95,6 +104,7 @@ outputCreated =
   fmap (\(OutputCreated output) ->
           (createOutput output,return ()))
 
+-- | react to destroyed output
 outputDestroyed :: (Reflex t,MonadHold t m,MonadFix m) => Event t OutputDestroyed -> m (Event t (StackSetChange i l a WLCHandle, IO ()))
 outputDestroyed =
   return .

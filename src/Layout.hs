@@ -27,7 +27,7 @@ instance (Show a) => LayoutClass DefaultLayout a where
                              i
                              size)
            (zip stackList [0 ..]))
-    where stackList = toList stack
+    where stackList = integrate stack
 
 calculateGeometry :: CInt -> CInt -> WLCSize -> WLCGeometry
 calculateGeometry total i (WLCSize resW resH)
@@ -70,7 +70,7 @@ insertViewInOutput :: StackSet i l WLCHandle WLCHandle
                    -> WLCHandle
                    -> StackSet i l WLCHandle WLCHandle
 insertViewInOutput s view output =
-  modify (Just (Stack view [] []))
-         (Just . insertUp view)
-         output
-         s
+  modifyWithOutput (Just (Stack view [] []))
+                   (return . insertUp view)
+                   output
+                   s

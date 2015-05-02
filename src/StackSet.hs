@@ -8,12 +8,19 @@ module StackSet
   , Workspace(..)
   , Screen(..)
   , insertUp
-  , modify
   , deleteFromStackSet
   , viewWorkspace
   , with
+  , focusUp
+  , focusDown
+  , swapUp
+  , swapDown
+  , modify
+  , modifyWithOutput
   , createOutput
   , removeOutput
+  , integrate
+  , integrate'
   ) where
 
 import Data.List
@@ -143,39 +150,78 @@ insertUp a stack =
   stack {down = focus stack : down stack
         ,focus = a}
 
-modify :: (Eq sid)
-       => Maybe (Stack a)
-       -> (Stack a -> (Maybe (Stack a)))
-       -> sid
-       -> StackSet i l a sid
-       -> StackSet i l a sid
-modify d f sid (s@StackSet{current = Nothing,.. }) = modifyVisible d f sid s
-modify d f sid (s@StackSet{current = Just screen',..})
-  | screen screen' == sid =
-    s {current =
-         Just (screen' {workspace =
-                          (workspace screen') {stack =
-                                                 maybe d f (stack (workspace screen'))}})}
-  | otherwise = modifyVisible d f sid s
-
-modifyVisible :: (Eq sid)
-              => Maybe (Stack a)
-              -> (Stack a -> (Maybe (Stack a)))
-              -> sid
-              -> StackSet i l a sid
-              -> StackSet i l a sid
-modifyVisible d f sid s =
-  s {visible =
-       map (\screen' ->
-              if screen screen' == sid
-                 then screen' {workspace =
-                                 (workspace screen') {stack =
-                                                        maybe d f (stack (workspace screen'))}}
-                 else screen')
-           (visible s)}
-
 with :: b -> (Stack a -> b) -> StackSet i l a sid -> b
-with d _ (StackSet {current = Nothing,..}) = d
-with d f (StackSet{current = Just currentScreen,..}) =
-  (maybe d f .
-   stack . workspace) currentScreen
+with d f s =
+  maybe d
+        f
+        ((stack . workspace) =<<
+         (current s))
+
+withOutput :: b -> (Stack a -> b) -> Screen i l a sid -> b
+withOutput d f s= maybe d f ((stack . workspace) s)
+
+modify :: Maybe (Stack a)
+       -> (Stack a -> Maybe (Stack a))
+       -> StackSet i l a sid
+       -> StackSet i l a sid
+modify d f s =
+  s {current =
+       modifyScreen <$>
+       (current s)}
+  where modifyScreen current =
+          current {workspace =
+                     (workspace current) {stack =
+                                            with d f s}}
+
+modify' :: (Stack a -> Stack a)
+        -> StackSet i l a sid
+        -> StackSet i l a sid
+modify' f = modify Nothing (return . f)
+
+modifyWithOutput :: Eq sid
+                 => Maybe (Stack a)
+                 -> (Stack a -> Maybe (Stack a))
+                 -> sid
+                 -> StackSet i l a sid
+                 -> StackSet i l a sid
+modifyWithOutput d f sid (StackSet current visible hidden) =
+  StackSet (modifyOutput d f <$>
+            (screen <$> current) <*>
+            current)
+           (map (modifyOutput d f sid) visible)
+           hidden
+
+modifyOutput :: Eq sid
+             => Maybe (Stack a)
+             -> (Stack a -> Maybe (Stack a))
+             -> sid
+             -> Screen i l a sid
+             -> Screen i l a sid
+modifyOutput d f sid s
+  | sid == screen s = s {workspace = (workspace s) {stack = withOutput d f s}}
+  | otherwise = s
+
+focusUp, focusDown, swapUp, swapDown :: StackSet i l a sid -> StackSet i l a sid
+focusUp   = modify' focusUp'
+focusDown = modify' focusDown'
+
+swapUp    = modify' swapUp'
+swapDown  = modify' (reverseStack . swapUp' . reverseStack)
+
+swapUp' :: Stack a -> Stack a
+swapUp'  (Stack t (l:ls) rs) = Stack t ls (l:rs)
+swapUp'  (Stack t []     rs) = Stack t (reverse rs) []
+
+focusUp', focusDown' :: Stack a -> Stack a
+focusUp' (Stack t (l:ls) rs) = Stack l ls (t:rs)
+focusUp' (Stack t []     rs) = Stack x xs [] where (x:xs) = reverse (t:rs)
+focusDown'                   = reverseStack . focusUp' . reverseStack
+
+reverseStack :: Stack a -> Stack a
+reverseStack (Stack t ls rs) = Stack t rs ls
+
+integrate :: Stack a -> [a]
+integrate (Stack x l r) = reverse l ++ x : r
+
+integrate' :: Maybe (Stack a) -> [a]
+integrate' = maybe [] integrate
