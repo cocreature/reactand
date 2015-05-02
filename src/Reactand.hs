@@ -4,19 +4,20 @@
 
 module Reactand where
 
-import           Control.Monad
-import           Control.Monad.Fix
-import           Data.Set
-import           Foreign.C.Types
-import           Reflex
-import           System.Process
-import           Text.XkbCommon.KeysymList
-import           WLC
+import Control.Monad
+import Control.Monad.Fix
+import Data.Set
+import Debug.Trace
+import Foreign.C.Types
+import Reflex
+import System.Process
+import Text.XkbCommon.KeysymList
+import WLC
 
-import           Helpers
-import           Layout
-import           StackSet
-import           Types
+import Helpers
+import Layout
+import StackSet
+import Types
 
 -- | reactive window manager
 reactand :: forall t m. WindowManager t m
@@ -67,7 +68,15 @@ key =
                      fromList [WlcBitModAlt] &&
                      sym == keysym_m ->
                    Just (focusUp,return ())
-               _ -> Nothing)
+                 | mods ==
+                     fromList [WlcBitModShift,WlcBitModAlt] &&
+                     sym == keysym_N ->
+                   Just (swapDown,return ())
+                 | mods ==
+                     fromList [WlcBitModShift,WlcBitModAlt] &&
+                     sym == keysym_M ->
+                   Just (swapUp,return ())
+               Key _ sym mods -> trace (show mods ++ " " ++ show sym) $ Nothing)
 
 -- | react to a new view
 viewCreated :: (Reflex t,MonadHold t m,MonadFix m)
