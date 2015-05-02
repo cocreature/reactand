@@ -6,12 +6,13 @@ module Reactand where
 
 import Control.Monad
 import Control.Monad.Fix
-import Data.Set
+import Data.Set hiding (map,filter,foldr)
 import Debug.Trace
 import Foreign.C.Types
 import Reflex
 import System.Process
 import Text.XkbCommon.KeysymList
+import Text.XkbCommon
 import WLC
 
 import Helpers
@@ -23,7 +24,7 @@ import Types
 reactand :: forall t m. WindowManager t m
 reactand e =
   do let selector = fan (singleton' <$> e)
-     keyEv <- key (select selector TKey)
+     keyEv <- key keyHandlers (select selector TKey)
      viewCreatedEv <-
        viewCreated (select selector TViewCreated)
      viewDestroyedEv <-
@@ -49,34 +50,34 @@ reactand e =
 
 -- | react to key events
 key :: (Reflex t,MonadHold t m,MonadFix m)
-             => Event t Key -> m (Event t (StackSetChange i l a sid,IO ()))
-key =
+    => [((Set WLCModifier,Keysym),(StackSetChange i l a sid,IO ()))]
+    -> Event t Key
+    -> m (Event t (StackSetChange i l a sid,IO ()))
+key handlers =
   return .
   fmapMaybe (\case
-               Key WlcKeyStatePressed sym mods
-                 | mods ==
-                     fromList [WlcBitModAlt] &&
-                     sym == keysym_Return ->
-                   Just (id
-                        ,void $
-                         spawnCommand "weston-terminal")
-                 | mods ==
-                     fromList [WlcBitModAlt] &&
-                     sym == keysym_n ->
-                   Just (focusDown,return ())
-                 | mods ==
-                     fromList [WlcBitModAlt] &&
-                     sym == keysym_m ->
-                   Just (focusUp,return ())
-                 | mods ==
-                     fromList [WlcBitModShift,WlcBitModAlt] &&
-                     sym == keysym_N ->
-                   Just (swapDown,return ())
-                 | mods ==
-                     fromList [WlcBitModShift,WlcBitModAlt] &&
-                     sym == keysym_M ->
-                   Just (swapUp,return ())
-               Key _ sym mods -> trace (show mods ++ " " ++ show sym) $ Nothing)
+               Key WlcKeyStatePressed sym mods ->
+                 foldr f Nothing $
+                 map snd $
+                 filter (\((mods',sym'),_) -> mods == mods' && sym == sym') handlers
+               Key _ _ _ -> Nothing)
+  where f (change,act) Nothing =
+          Just (change,act)
+        f (change,act) (Just (change',act')) =
+          Just (change . change',act >> act')
+
+keyHandlers :: [((Set WLCModifier,Keysym),(StackSetChange i l a sid,IO ()))]
+keyHandlers =
+  [((fromList [WlcBitModAlt],keysym_Return)
+   ,(id
+    ,void $
+     spawnCommand "weston-terminal"))
+  ,((fromList [WlcBitModAlt],keysym_n),(focusDown,return ()))
+  ,((fromList [WlcBitModAlt],keysym_m),(focusUp,return ()))
+  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_N),(swapDown,return ()))
+  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),(swapUp,return ()))]
+
+
 
 -- | react to a new view
 viewCreated :: (Reflex t,MonadHold t m,MonadFix m)
