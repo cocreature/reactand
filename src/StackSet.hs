@@ -13,6 +13,7 @@ module StackSet
   , viewWorkspace
   , with
   , createOutput
+  , removeOutput
   ) where
 
 import Data.List
@@ -53,7 +54,7 @@ deleteFromScreen a (Screen workspace sid) =
   Screen (deleteFromWorkspace a workspace) sid
 
 deleteFromWorkspace :: Eq a => a -> Workspace i l a -> Workspace i l a
-deleteFromWorkspace view w@(Workspace _ _ _ Nothing) = w
+deleteFromWorkspace _view w@(Workspace _ _ _ Nothing) = w
 deleteFromWorkspace view w@(Workspace _ _ _ (Just stack)) =
   w {stack =
        fst $
@@ -115,6 +116,24 @@ createOutput sid s@(StackSet _ visible' (x:xs)) =
        (Screen x sid) :
        visible'
     ,hidden = xs}
+
+removeOutput :: Eq sid => sid -> StackSet i l a sid -> StackSet i l a sid
+removeOutput sid (StackSet current visible hidden) =
+  StackSet current' visible' (hidden'' ++ hidden' ++ hidden)
+  where (visible',hidden') =
+          deleteBySid sid visible
+        (current',hidden'') =
+          case current of
+            Nothing -> (Nothing,[])
+            Just screen'
+              | screen screen' == sid ->
+                (Nothing,return $ workspace screen')
+              | otherwise -> (Just screen',[])
+
+deleteBySid :: Eq sid => sid -> [Screen i l a sid] -> ([Screen i l a sid],[Workspace i l a])
+deleteBySid sid =
+  fmap (fmap workspace) .
+  break ((== sid) . screen)
 
 equating :: (Eq b) => (a -> b) -> a -> a -> Bool
 equating f x y = f x == f y

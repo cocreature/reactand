@@ -22,26 +22,34 @@ import           Types
 reactand :: forall t m. WindowManager t m
 reactand e =
   do let selector = fan (singleton' <$> e)
-     keyEv <- reactiveKey (select selector TKey)
+     keyEv <- key (select selector TKey)
      viewCreatedEv <-
-       reactiveViewCreated (select selector TViewCreated)
+       viewCreated (select selector TViewCreated)
+     viewDestroyedEv <-
+       viewDestroyed (select selector TViewDestroyed)
      outputCreatedEv <-
-       reactiveOutputCreated (select selector TOutputCreated)
-     viewDestroyedEv <- viewDestroyed (select selector TViewDestroyed)
+       outputCreated (select selector TOutputCreated)
+     outputDestroyedEv <-
+       outputDestroyed (select selector TOutputDestroyed)
      let (stacksetChanges,actions) =
            unzip . fmap splitE $
-           [keyEv,viewCreatedEv,outputCreatedEv,viewDestroyedEv]
+           [keyEv
+           ,viewCreatedEv
+           ,viewDestroyedEv
+           ,outputCreatedEv
+           ,outputDestroyedEv]
      stacksetChanges' <-
        -- apply accumulated changes to stackset
        mapDyn (\stackSet -> print stackSet >> relayout stackSet) =<<
-       (nubDyn <$> foldDyn ($) emptyStackSet (mergeWith (.) stacksetChanges) :: m (Dynamic t (StackSet String (DefaultLayout WLCHandle) WLCHandle WLCHandle)))
+       (nubDyn <$>
+        foldDyn ($) emptyStackSet (mergeWith (.) stacksetChanges) :: m (Dynamic t (StackSet String (DefaultLayout WLCHandle) WLCHandle WLCHandle)))
      return $
        mergeWith (>>) (updated stacksetChanges' : actions)
 
 -- | react to key events
-reactiveKey :: (Reflex t,MonadHold t m,MonadFix m)
-            => Event t Key -> m (Event t (StackSetChange i l a sid,IO ()))
-reactiveKey =
+key :: (Reflex t,MonadHold t m,MonadFix m)
+             => Event t Key -> m (Event t (StackSetChange i l a sid,IO ()))
+key =
   return .
   fmapMaybe (\case
                Key WlcKeyStatePressed sym mods ->
@@ -55,13 +63,13 @@ reactiveKey =
                _ -> Nothing)
 
 -- | react to a newly created view
-reactiveViewCreated :: (Reflex t,MonadHold t m,MonadFix m)
-                    => Event t ViewCreated
-                    -> m (Event t (StackSetChange String
-                                                  (DefaultLayout WLCHandle)
-                                                  WLCHandle CULong,
-                                   IO ()))
-reactiveViewCreated =
+viewCreated :: (Reflex t,MonadHold t m,MonadFix m)
+                     => Event t ViewCreated
+                     -> m (Event t (StackSetChange String
+                                                   (DefaultLayout WLCHandle)
+                                                   WLCHandle CULong,
+                                    IO ()))
+viewCreated =
   return .
   fmap (\(ViewCreated view output) ->
                (\stackset ->
@@ -79,10 +87,16 @@ viewDestroyed =
   fmap (\(ViewDestroyed view) ->
           (deleteFromStackSet view,return ()))
 
-reactiveOutputCreated :: (Reflex t,MonadHold t m,MonadFix m)
-                      => Event t OutputCreated
-                      -> m (Event t (StackSetChange i l a WLCHandle,IO ()))
-reactiveOutputCreated =
+outputCreated :: (Reflex t,MonadHold t m,MonadFix m)
+                       => Event t OutputCreated
+                       -> m (Event t (StackSetChange i l a WLCHandle,IO ()))
+outputCreated =
   return .
   fmap (\(OutputCreated output) ->
           (createOutput output,return ()))
+
+outputDestroyed :: (Reflex t,MonadHold t m,MonadFix m) => Event t OutputDestroyed -> m (Event t (StackSetChange i l a WLCHandle, IO ()))
+outputDestroyed =
+  return .
+  fmap (\(OutputDestroyed output) ->
+          (removeOutput output,return ()))

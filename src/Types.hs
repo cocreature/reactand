@@ -8,6 +8,7 @@ module Types
   , ViewCreated(..)
   , ViewDestroyed(..)
   , OutputCreated(..)
+  , OutputDestroyed(..)
   , WindowManager
   , StackSetChange
   ) where
@@ -28,6 +29,7 @@ data Tag a where
      TViewCreated :: Tag ViewCreated
      TViewDestroyed :: Tag ViewDestroyed
      TOutputCreated :: Tag OutputCreated
+     TOutputDestroyed :: Tag OutputDestroyed
 
 data Key =
   Key WLCKeyState
@@ -39,9 +41,11 @@ data ViewCreated =
   ViewCreated WLCHandle WLCHandle
   deriving (Show,Eq,Ord)
 
-data ViewDestroyed = ViewDestroyed WLCHandle
+data ViewDestroyed = ViewDestroyed WLCHandle deriving (Show,Eq,Ord)
 
 data OutputCreated = OutputCreated WLCHandle deriving (Show,Eq,Ord)
+
+data OutputDestroyed = OutputDestroyed WLCHandle deriving (Show,Eq,Ord)
 
 type WindowManager t m = (Reflex t,MonadHold t m,MonadFix m) => Event t (DSum Tag) -> m (Event t (IO ()))
 type StackSetChange i l a sid = StackSet i l a sid -> StackSet i l a sid
