@@ -7,7 +7,6 @@ module Reactand where
 import Control.Monad
 import Control.Monad.Fix
 import Data.Set hiding (map,filter,foldr)
-import Debug.Trace
 import Foreign.C.Types
 import Reflex
 import System.Process
@@ -66,7 +65,7 @@ key handlers =
         f (change,act) (Just (change',act')) =
           Just (change . change',act >> act')
 
-keyHandlers :: [((Set WLCModifier,Keysym),(StackSetChange i l a sid,IO ()))]
+keyHandlers :: Eq sid => [((Set WLCModifier,Keysym),(StackSetChange String l a sid,IO ()))]
 keyHandlers =
   [((fromList [WlcBitModAlt],keysym_Return)
    ,(id
@@ -75,7 +74,17 @@ keyHandlers =
   ,((fromList [WlcBitModAlt],keysym_n),(focusDown,return ()))
   ,((fromList [WlcBitModAlt],keysym_m),(focusUp,return ()))
   ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_N),(swapDown,return ()))
-  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),(swapUp,return ()))]
+  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),(swapUp,return ()))
+  ,((fromList [WlcBitModAlt],keysym_0),(viewWorkspace "0",return ()))
+  ,((fromList [WlcBitModAlt],keysym_1),(viewWorkspace "1",return ()))
+  ,((fromList [WlcBitModAlt],keysym_2),(viewWorkspace "2",return ()))
+  ,((fromList [WlcBitModAlt],keysym_3),(viewWorkspace "3",return ()))
+  ,((fromList [WlcBitModAlt],keysym_4),(viewWorkspace "4",return ()))
+  ,((fromList [WlcBitModAlt],keysym_5),(viewWorkspace "5",return ()))
+  ,((fromList [WlcBitModAlt],keysym_6),(viewWorkspace "6",return ()))
+  ,((fromList [WlcBitModAlt],keysym_7),(viewWorkspace "7",return ()))
+  ,((fromList [WlcBitModAlt],keysym_8),(viewWorkspace "8",return ()))
+  ,((fromList [WlcBitModAlt],keysym_9),(viewWorkspace "9",return ()))]
 
 
 

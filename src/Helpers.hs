@@ -41,7 +41,7 @@ emptyStackSet =
                                (DefaultLayout)
                                (2 ^ i)
                                Nothing))
-                 [0 :: Integer .. 3])
+                 [0 :: Int .. 9])
 
 -- | generate singleton map from dsum.
 singleton' :: GCompare k => DSum k -> DMap.DMap k

@@ -10,7 +10,6 @@ module Layout
 
 import Foreign.C.Types
 import StackSet
-import Data.Foldable
 import Data.List
 import WLC hiding (size)
 
