@@ -7,7 +7,6 @@ module Reactand where
 import Control.Monad
 import Control.Monad.Fix
 import Data.Set hiding (map,filter,foldr)
-import Foreign.C.Types
 import Reflex
 import System.Process
 import Text.XkbCommon.KeysymList
@@ -43,7 +42,7 @@ reactand e =
        -- apply accumulated changes to stackset
        mapDyn (\stackSet -> print stackSet >> relayout stackSet) =<<
        (nubDyn <$>
-        foldDyn ($) emptyStackSet (mergeWith (.) stacksetChanges) :: m (Dynamic t (StackSet String (DefaultLayout WLCHandle) WLCHandle WLCHandle)))
+        foldDyn ($) emptyStackSet (mergeWith (.) stacksetChanges) :: m (Dynamic t (StackSet String (DefaultLayout WLCHandle) WLCHandle WLCOutputPtr)))
      return $
        mergeWith (>>) (updated stacksetChanges' : actions)
 
@@ -93,7 +92,7 @@ viewCreated :: (Reflex t,MonadHold t m,MonadFix m)
                      => Event t ViewCreated
                      -> m (Event t (StackSetChange String
                                                    (DefaultLayout WLCHandle)
-                                                   WLCHandle CULong,
+                                                   WLCHandle WLCOutputPtr,
                                     IO ()))
 viewCreated =
   return .
@@ -107,7 +106,7 @@ viewDestroyed :: (Reflex t,MonadHold t m,MonadFix m)
               => Event t ViewDestroyed
               -> m (Event t (StackSetChange String
                                             (DefaultLayout WLCHandle)
-                                            WLCHandle CULong,
+                                            WLCHandle WLCOutputPtr,
                              IO ()))
 viewDestroyed =
   return .
@@ -117,14 +116,14 @@ viewDestroyed =
 -- | react to new output
 outputCreated :: (Reflex t,MonadHold t m,MonadFix m)
                        => Event t OutputCreated
-                       -> m (Event t (StackSetChange i l a WLCHandle,IO ()))
+                       -> m (Event t (StackSetChange i l a WLCOutputPtr,IO ()))
 outputCreated =
   return .
   fmap (\(OutputCreated output) ->
           (createOutput output,return ()))
 
 -- | react to destroyed output
-outputDestroyed :: (Reflex t,MonadHold t m,MonadFix m) => Event t OutputDestroyed -> m (Event t (StackSetChange i l a WLCHandle, IO ()))
+outputDestroyed :: (Reflex t,MonadHold t m,MonadFix m) => Event t OutputDestroyed -> m (Event t (StackSetChange i l a WLCOutputPtr, IO ()))
 outputDestroyed =
   return .
   fmap (\(OutputDestroyed output) ->

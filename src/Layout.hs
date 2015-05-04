@@ -39,14 +39,14 @@ calculateGeometry total i (WLCSize resW resH)
         h = resH `div` ((fromIntegral total + 1) `div` 2)
 
 relayout :: LayoutClass l WLCHandle
-         => StackSet i (l WLCHandle) WLCHandle WLCHandle -> IO ()
+         => StackSet i (l WLCHandle) WLCHandle WLCOutputPtr -> IO ()
 relayout (StackSet current visible _) = do
   mapM_ layoutScreen current
   mapM_ (wlcViewFocus . focus) (stack . workspace =<< current)
   mapM_ layoutScreen visible
 
 layoutScreen :: LayoutClass l WLCHandle
-             => Screen i (l WLCHandle) WLCHandle WLCHandle -> IO ()
+             => Screen i (l WLCHandle) WLCHandle WLCOutputPtr -> IO ()
 layoutScreen (Screen w sid) = do
   res <- wlcOutputGetResolution sid
   wlcOutputSetMask sid (mask w)
@@ -64,10 +64,10 @@ layoutWorkspace size' (Workspace _ layout mask (Just a)) = do
         (pureLayout layout size' a)
 
 -- | insert the view into workspace that is focused on the output
-insertViewInOutput :: StackSet i l WLCHandle WLCHandle
+insertViewInOutput :: StackSet i l WLCHandle WLCOutputPtr
                    -> WLCHandle
-                   -> WLCHandle
-                   -> StackSet i l WLCHandle WLCHandle
+                   -> WLCOutputPtr
+                   -> StackSet i l WLCHandle WLCOutputPtr
 insertViewInOutput s view output =
   modifyWithOutput (Just (Stack view [] []))
                    (return . insertUp view)

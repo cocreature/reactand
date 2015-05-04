@@ -65,7 +65,7 @@ vCreated messages action view =
   do output <- wlcViewGetOutput view
      writeChan messages
                (TViewCreated :=>
-                ViewCreated view output)
+                ViewCreated view (WLCOutputPtr output))
      act <- takeMVar action
      act
      return 1
@@ -86,7 +86,7 @@ oCreated :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> IO CBool
 oCreated messages action output =
   do writeChan messages
                (TOutputCreated :=>
-                OutputCreated output)
+                OutputCreated (WLCOutputPtr output))
      act <- takeMVar action
      act
      return 1
@@ -95,6 +95,6 @@ oDestroyed :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> IO ()
 oDestroyed messages action output =
   do writeChan messages
                (TOutputDestroyed :=>
-                OutputDestroyed output)
+                OutputDestroyed (WLCOutputPtr output))
      act <- takeMVar action
      act

@@ -38,14 +38,14 @@ data Key =
   deriving (Show,Eq)
 
 data ViewCreated =
-  ViewCreated WLCHandle WLCHandle
+  ViewCreated WLCHandle WLCOutputPtr
   deriving (Show,Eq,Ord)
 
 data ViewDestroyed = ViewDestroyed WLCHandle deriving (Show,Eq,Ord)
 
-data OutputCreated = OutputCreated WLCHandle deriving (Show,Eq,Ord)
+data OutputCreated = OutputCreated WLCOutputPtr deriving (Show,Eq,Ord)
 
-data OutputDestroyed = OutputDestroyed WLCHandle deriving (Show,Eq,Ord)
+data OutputDestroyed = OutputDestroyed WLCOutputPtr deriving (Show,Eq,Ord)
 
 type WindowManager t m = (Reflex t,MonadHold t m,MonadFix m) => Event t (DSum Tag) -> m (Event t (IO ()))
 type StackSetChange i l a sid = StackSet i l a sid -> StackSet i l a sid
