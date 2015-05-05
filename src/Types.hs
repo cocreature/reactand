@@ -38,10 +38,10 @@ data Key =
   deriving (Show,Eq)
 
 data ViewCreated =
-  ViewCreated WLCHandle WLCOutputPtr
+  ViewCreated WLCViewPtr WLCOutputPtr
   deriving (Show,Eq,Ord)
 
-data ViewDestroyed = ViewDestroyed WLCHandle deriving (Show,Eq,Ord)
+data ViewDestroyed = ViewDestroyed WLCViewPtr deriving (Show,Eq,Ord)
 
 data OutputCreated = OutputCreated WLCOutputPtr deriving (Show,Eq,Ord)
 

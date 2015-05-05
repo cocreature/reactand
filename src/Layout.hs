@@ -38,23 +38,23 @@ calculateGeometry total i (WLCSize resW resH)
         w = resW `div` 2
         h = resH `div` ((fromIntegral total + 1) `div` 2)
 
-relayout :: LayoutClass l WLCHandle
-         => StackSet i (l WLCHandle) WLCHandle WLCOutputPtr -> IO ()
+relayout :: LayoutClass l WLCViewPtr
+         => StackSet i (l WLCViewPtr) WLCViewPtr WLCOutputPtr -> IO ()
 relayout (StackSet current visible _) = do
   mapM_ layoutScreen current
   mapM_ (wlcViewFocus . focus) (stack . workspace =<< current)
   mapM_ layoutScreen visible
 
-layoutScreen :: LayoutClass l WLCHandle
-             => Screen i (l WLCHandle) WLCHandle WLCOutputPtr -> IO ()
+layoutScreen :: LayoutClass l WLCViewPtr
+             => Screen i (l WLCViewPtr) WLCViewPtr WLCOutputPtr -> IO ()
 layoutScreen (Screen w sid) = do
   res <- wlcOutputGetResolution sid
   wlcOutputSetMask sid (mask w)
   layoutWorkspace res w
 
 -- | Resize all views on the workspace according to the current layout
-layoutWorkspace :: LayoutClass l WLCHandle
-                => WLCSize -> Workspace i (l WLCHandle) WLCHandle -> IO ()
+layoutWorkspace :: LayoutClass l WLCViewPtr
+                => WLCSize -> Workspace i (l WLCViewPtr) WLCViewPtr -> IO ()
 layoutWorkspace _ (Workspace _ _ _ Nothing) = return ()
 layoutWorkspace size' (Workspace _ layout mask (Just a)) = do
   mapM_ (\(view,geometry) ->
@@ -64,10 +64,10 @@ layoutWorkspace size' (Workspace _ layout mask (Just a)) = do
         (pureLayout layout size' a)
 
 -- | insert the view into workspace that is focused on the output
-insertViewInOutput :: StackSet i l WLCHandle WLCOutputPtr
-                   -> WLCHandle
+insertViewInOutput :: StackSet i l WLCViewPtr WLCOutputPtr
+                   -> WLCViewPtr
                    -> WLCOutputPtr
-                   -> StackSet i l WLCHandle WLCOutputPtr
+                   -> StackSet i l WLCViewPtr WLCOutputPtr
 insertViewInOutput s view output =
   modifyWithOutput (Just (Stack view [] []))
                    (return . insertUp view)

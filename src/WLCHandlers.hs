@@ -62,23 +62,23 @@ kKey messages action _view _ modifiersPtr _ symBit keyStateBit =
 
 vCreated :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> IO CBool
 vCreated messages action view =
-  do output <- wlcViewGetOutput view
+  do output <- wlcViewGetOutput (WLCViewPtr view)
      writeChan messages
                (TViewCreated :=>
-                ViewCreated view (WLCOutputPtr output))
+                ViewCreated (WLCViewPtr view) (WLCOutputPtr output))
      act <- takeMVar action
      act
      return 1
 
 vFocus :: WLCHandle -> CBool -> IO ()
 vFocus view focus =
-  do wlcViewSetState view
+  do wlcViewSetState (WLCViewPtr view)
                      WlcBitActivated
                      (focus /= 0)
 
 vDestroyed :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> IO ()
 vDestroyed messages action view =
-  do writeChan messages (TViewDestroyed :=> ViewDestroyed view)
+  do writeChan messages (TViewDestroyed :=> ViewDestroyed (WLCViewPtr view))
      act <- takeMVar action
      act
 

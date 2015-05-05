@@ -42,7 +42,7 @@ reactand e =
        -- apply accumulated changes to stackset
        mapDyn (\stackSet -> print stackSet >> relayout stackSet) =<<
        (nubDyn <$>
-        foldDyn ($) emptyStackSet (mergeWith (.) stacksetChanges) :: m (Dynamic t (StackSet String (DefaultLayout WLCHandle) WLCHandle WLCOutputPtr)))
+        foldDyn ($) emptyStackSet (mergeWith (.) stacksetChanges) :: m (Dynamic t (StackSet String (DefaultLayout WLCViewPtr) WLCViewPtr WLCOutputPtr)))
      return $
        mergeWith (>>) (updated stacksetChanges' : actions)
 
@@ -91,8 +91,8 @@ keyHandlers =
 viewCreated :: (Reflex t,MonadHold t m,MonadFix m)
                      => Event t ViewCreated
                      -> m (Event t (StackSetChange String
-                                                   (DefaultLayout WLCHandle)
-                                                   WLCHandle WLCOutputPtr,
+                                                   (DefaultLayout WLCViewPtr)
+                                                   WLCViewPtr WLCOutputPtr,
                                     IO ()))
 viewCreated =
   return .
@@ -105,8 +105,8 @@ viewCreated =
 viewDestroyed :: (Reflex t,MonadHold t m,MonadFix m)
               => Event t ViewDestroyed
               -> m (Event t (StackSetChange String
-                                            (DefaultLayout WLCHandle)
-                                            WLCHandle WLCOutputPtr,
+                                            (DefaultLayout WLCViewPtr)
+                                            WLCViewPtr WLCOutputPtr,
                              IO ()))
 viewDestroyed =
   return .
