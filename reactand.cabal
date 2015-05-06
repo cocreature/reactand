@@ -65,7 +65,7 @@ executable reactand
                      , dependent-sum >= 0.2
                      , lens >= 4.9
                      , process >= 1.2
-                     , reflex >= 0.1
+                     , reflex >= 0.2
                      , stm >= 2.4
                      , template-haskell >= 2.10
                      , transformers >= 0.4
