@@ -15,14 +15,13 @@ module Types
 
 import Control.Monad.Fix
 import Data.Dependent.Map hiding (Key)
-import Data.GADT.Compare
+import Data.GADT.Compare.TH
 import Data.Set
 import Reflex
 import Text.XkbCommon
 import WLC
 
 import StackSet
-import TH
 
 data Tag a where
      TKey :: Tag Key
@@ -50,5 +49,5 @@ data OutputDestroyed = OutputDestroyed WLCOutputPtr deriving (Show,Eq,Ord)
 type WindowManager t m = (Reflex t,MonadHold t m,MonadFix m) => Event t (DSum Tag) -> m (Event t (IO ()))
 type StackSetChange i l a sid = StackSet i l a sid -> StackSet i l a sid
 
-makeGEqInstance ''Tag
-makeGCompareInstance ''Tag
+deriveGEq ''Tag
+deriveGCompare ''Tag

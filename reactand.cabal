@@ -63,6 +63,7 @@ executable reactand
                      , data-default >= 0.5
                      , dependent-map >= 0.1
                      , dependent-sum >= 0.2
+                     , dependent-sum-template >= 0.0.0.3
                      , lens >= 4.9
                      , process >= 1.2
                      , reflex >= 0.2
