@@ -17,6 +17,7 @@ import           Data.GADT.Compare
 
 import           Layout
 import           StackSet
+import           Tree
 
 getSym :: CUInt -> Keysym
 getSym sym = Keysym (fromIntegral sym)
@@ -32,16 +33,16 @@ getModifiers (WLCModifiers _ mods) =
                       0)
                    (enumFrom WlcBitModShift))
 
-emptyStackSet :: StackSet String (DefaultLayout w) a sid
+emptyStackSet :: StackSet String DefaultLayout a sid
 emptyStackSet =
   StackSet Nothing
            []
            (fmap (\i ->
                     (Workspace (show i)
-                               (DefaultLayout)
                                (2 ^ i)
-                               Nothing))
-                 [0 :: Int .. 9])
+                               (TreeZipper (Tree DefaultLayout Nothing)
+                                           [])))
+                 [0 :: Int .. 1])
 
 -- | generate singleton map from dsum.
 singleton' :: GCompare k => DSum k -> DMap.DMap k

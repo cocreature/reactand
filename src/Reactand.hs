@@ -42,7 +42,7 @@ reactand e =
        -- apply accumulated changes to stackset
        mapDyn (\stackSet -> print stackSet >> relayout stackSet) =<<
        (nubDyn <$>
-        foldDyn ($) emptyStackSet (mergeWith (.) stacksetChanges) :: m (Dynamic t (StackSet String (DefaultLayout WLCViewPtr) WLCViewPtr WLCOutputPtr)))
+        foldDyn ($) emptyStackSet (mergeWith (.) stacksetChanges))
      return $
        mergeWith (>>) (updated stacksetChanges' : actions)
 
@@ -70,20 +70,21 @@ keyHandlers =
    ,(id
     ,void $
      spawnCommand "weston-terminal"))
-  ,((fromList [WlcBitModAlt],keysym_n),(focusDown,return ()))
-  ,((fromList [WlcBitModAlt],keysym_m),(focusUp,return ()))
-  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_N),(swapDown,return ()))
-  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),(swapUp,return ()))
-  ,((fromList [WlcBitModAlt],keysym_0),(viewWorkspace "0",return ()))
-  ,((fromList [WlcBitModAlt],keysym_1),(viewWorkspace "1",return ()))
-  ,((fromList [WlcBitModAlt],keysym_2),(viewWorkspace "2",return ()))
-  ,((fromList [WlcBitModAlt],keysym_3),(viewWorkspace "3",return ()))
-  ,((fromList [WlcBitModAlt],keysym_4),(viewWorkspace "4",return ()))
-  ,((fromList [WlcBitModAlt],keysym_5),(viewWorkspace "5",return ()))
-  ,((fromList [WlcBitModAlt],keysym_6),(viewWorkspace "6",return ()))
-  ,((fromList [WlcBitModAlt],keysym_7),(viewWorkspace "7",return ()))
-  ,((fromList [WlcBitModAlt],keysym_8),(viewWorkspace "8",return ()))
-  ,((fromList [WlcBitModAlt],keysym_9),(viewWorkspace "9",return ()))]
+  -- ,((fromList [WlcBitModAlt],keysym_n),(focusDown,return ()))
+  -- ,((fromList [WlcBitModAlt],keysym_m),(focusUp,return ()))
+  -- ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_N),(swapDown,return ()))
+  -- ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),(swapUp,return ()))
+  -- ,((fromList [WlcBitModAlt],keysym_0),(viewWorkspace "0",return ()))
+  -- ,((fromList [WlcBitModAlt],keysym_1),(viewWorkspace "1",return ()))
+  -- ,((fromList [WlcBitModAlt],keysym_2),(viewWorkspace "2",return ()))
+  -- ,((fromList [WlcBitModAlt],keysym_3),(viewWorkspace "3",return ()))
+  -- ,((fromList [WlcBitModAlt],keysym_4),(viewWorkspace "4",return ()))
+  -- ,((fromList [WlcBitModAlt],keysym_5),(viewWorkspace "5",return ()))
+  -- ,((fromList [WlcBitModAlt],keysym_6),(viewWorkspace "6",return ()))
+  -- ,((fromList [WlcBitModAlt],keysym_7),(viewWorkspace "7",return ()))
+  -- ,((fromList [WlcBitModAlt],keysym_8),(viewWorkspace "8",return ()))
+  -- ,((fromList [WlcBitModAlt],keysym_9),(viewWorkspace "9",return ()))
+  ]
 
 
 
@@ -91,21 +92,21 @@ keyHandlers =
 viewCreated :: (Reflex t,MonadHold t m,MonadFix m)
                      => Event t ViewCreated
                      -> m (Event t (StackSetChange String
-                                                   (DefaultLayout WLCViewPtr)
+                                                   DefaultLayout
                                                    WLCViewPtr WLCOutputPtr,
                                     IO ()))
 viewCreated =
   return .
   fmap (\(ViewCreated view output) ->
                (\stackset ->
-                       insertViewInOutput stackset view output
+                       insertViewInOutput DefaultLayout stackset view output
                     ,wlcViewFocus view))
 
 -- | react to destroyed view
 viewDestroyed :: (Reflex t,MonadHold t m,MonadFix m)
               => Event t ViewDestroyed
               -> m (Event t (StackSetChange String
-                                            (DefaultLayout WLCViewPtr)
+                                            DefaultLayout
                                             WLCViewPtr WLCOutputPtr,
                              IO ()))
 viewDestroyed =
