@@ -18,8 +18,6 @@ module StackSet
   , modifyWithOutput
   , createOutput
   , removeOutput
-  -- , integrate
-  -- , integrate'
   , delete'
   , workspace
   , current
@@ -106,69 +104,6 @@ deleteFromList v = mapMaybe f
        | otherwise = return (Left v')
     f (Right t) = return (Right (deleteFromTree v t))
 
--- deleteFromStackSet a (StackSet current visible hidden) =
---   StackSet (deleteFromScreen a <$> current)
---            (deleteFromScreen a <$> visible)
---            (deleteFromWorkspace a <$> hidden)
-
--- deleteFromScreen :: Eq a => a -> Screen i l a sid -> Screen i l a sid
--- deleteFromScreen a (Screen workspace sid) =
---   Screen (deleteFromWorkspace a workspace) sid
-
--- deleteFromWorkspace :: Eq a => a -> Workspace i l a -> Workspace i l a
--- deleteFromWorkspace view w =
---   w & tree %~
---   (deleteFromTreeZipper view)
-
--- deleteFromTreeZipper :: Eq l => l -> TreeZipper a l -> TreeZipper a l
--- deleteFromTreeZipper l (TreeZipper f ls rs ps)
---   | focusB = case focus' of
---                Just f' -> TreeZipper f' ls rs ps
---   where (focus',focusB) = deleteFromTree l f
-
--- deleteFromTree :: Eq l => l -> Tree a l -> (Maybe (Tree a l), Bool)
--- deleteFromTree l' (Leaf l)
---   | l == l' = (Nothing,True)
---   | otherwise = (Just (Leaf l),False)
--- deleteFromTree l' (Branch a Nothing) = (Just (Branch a Nothing),False)
--- -- deleteFromTree l' (Branch a (Just (ListZipper f [] [])))
-
--- deleteFromListZipper :: Eq a => a -> ListZipper a -> (Maybe (ListZipper a), Bool)
--- deleteFromListZipper a (ListZipper focus [] [])
---   | focus == a = (Nothing, True)
---   | otherwise = (Just (ListZipper focus [] []), False)
--- deleteFromListZipper a (ListZipper focus [] down) =
---   deleteFromListZipper
---     a
---     (ListZipper focus
---                 (reverse down)
---                 [])
--- deleteFromListZipper a (ListZipper focus (x:xs) down)
---   | focus == a = (Just (ListZipper x xs down),True)
---   | (up,True) <- delete' a (x:xs) = (Just (ListZipper focus up down),True)
---   | (down',True) <- delete' a down = (Just (ListZipper focus (x:xs) down'),True)
---   | otherwise = (Just (ListZipper focus (x:xs) down),False)
-
-
--- | try removing the supplied element from the stack, if it currently
--- focused use the next lower element
--- use supplied layout if there is none
--- deleteFromStack :: Eq l => a -> l -> TreeZipper a l -> (TreeZipper a l, Bool)
--- deleteFromStack a l' (TreeZipper (Leaf l) ls rs [])
---   | l' == l = (TreeZipper (Branch a Nothing) ls rs [], True)
---   | otherwise = (TreeZipper (Leaf l) ls rs [],False)
--- deleteFromStack a l' (TreeZipper (Leaf l) ls rs ((ls',a',rs'):ps)) =
--- deleteFromStack a (Stack focus [] [])
---   | focus == a = (Nothing, True)
---   | otherwise = (Just (Stack focus [] []), False)
--- deleteFromStack a (Stack focus [] down) =
---   deleteFromStack a
---                   (Stack focus (reverse down) [])
--- deleteFromStack a (Stack focus (x:xs) down)
---   | focus == a = (Just (Stack x xs down),True)
---   | (up,True) <- delete' a (x:xs) = (Just (Stack focus up down),True)
---   | (down',True) <- delete' a down = (Just (Stack focus (x:xs) down'),True)
---   | otherwise = (Just (Stack focus (x:xs) down),False)
 
 -- viewWorkspace :: (Eq i,Eq sid)
 --               => i -> StackSet i l a sid -> StackSet i l a sid
@@ -271,9 +206,3 @@ modifyOutput f sid s
 
 -- reverseStack :: Stack a -> Stack a
 -- reverseStack (Stack t ls rs) = Stack t rs ls
-
--- integrate :: Stack a -> [a]
--- integrate (Stack x l r) = reverse l ++ x : r
-
--- integrate' :: Maybe (Stack a) -> [a]
--- integrate' = maybe [] integrate

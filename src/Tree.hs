@@ -21,14 +21,12 @@ module Tree
 
 import Control.Lens
 
--- | a is an annotation at a branch
--- | l is the type of a leaf
+-- | l is an annotation at a branch
+-- | a is the type of a leaf
 data Tree l a =
   Tree {_layout :: l
        ,_treeElements :: (Maybe (ListZipper (Either a (Tree l a))))}
   deriving (Show,Read,Eq,Ord)
-
-
 
 data ListZipper a =
   ListZipper {_focusL :: !a
