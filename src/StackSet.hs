@@ -9,7 +9,7 @@ module StackSet
   , Workspace(..)
   , Screen(..)
   , deleteFromStackSet
-  -- , viewWorkspace
+  , viewWorkspace
   -- , focusUp
   -- , focusDown
   -- , swapUp
@@ -28,7 +28,8 @@ module StackSet
   , tree
   ) where
 
-
+import Data.Function
+import Data.List
 import Control.Lens
 import Data.Maybe
 import Foreign.C.Types
@@ -105,26 +106,29 @@ deleteFromList v = mapMaybe f
     f (Right t) = return (Right (deleteFromTree v t))
 
 
--- viewWorkspace :: (Eq i,Eq sid)
---               => i -> StackSet i l a sid -> StackSet i l a sid
--- viewWorkspace _ s@(StackSet Nothing _ _) = s
--- viewWorkspace i s@(StackSet (Just currentScreen) visible' _)
---   | i == currentScreen ^. workspace . tag = s
---   | Just x <-
---      find (\x -> i == x ^. workspace . tag)
---           (s ^. visible) =
---     s & current .~ Just x
---       & visible .~ (currentScreen :
---                     deleteBy (equating (view screen)) x visible')
---   | Just x <-
---      find (\x -> i == x ^. tag)
---           (s ^. hidden) =
---     s & current .~ Just (currentScreen & workspace .~ x)
---       & hidden .~ (currentScreen ^. workspace :
---                    deleteBy (equating (view tag))
---                           x
---                           (s ^. hidden))
---   | otherwise = s
+viewWorkspace :: (Eq i,Eq sid)
+              => i -> StackSet i l a sid -> StackSet i l a sid
+viewWorkspace _ s@(StackSet Nothing _ _) = s
+viewWorkspace i s@(StackSet (Just currentScreen) visible' _)
+  | i == currentScreen ^. workspace . tag = s
+  | Just x <-
+     find (\x -> i == x ^. workspace . tag)
+          (s ^. visible) =
+    s & current .~ Just x
+      & visible .~ (currentScreen :
+                    deleteBy (equating (view screen)) x visible')
+  | Just x <-
+     find (\x -> i == x ^. tag)
+          (s ^. hidden) =
+    s & current .~ Just (currentScreen & workspace .~ x)
+      & hidden .~ (currentScreen ^. workspace :
+                   deleteBy (equating (view tag))
+                          x
+                          (s ^. hidden))
+  | otherwise = s
+
+equating :: (Eq b) => (a -> b) -> a -> a -> Bool
+equating = on (==)
 
 createOutput :: sid -> StackSet i l a sid -> StackSet i l a sid
 createOutput _ (StackSet _ _ []) = error "No more workspaces available"
