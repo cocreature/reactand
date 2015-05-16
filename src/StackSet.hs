@@ -10,8 +10,8 @@ module StackSet
   , Screen(..)
   , deleteFromStackSet
   , viewWorkspace
-  -- , focusUp
-  -- , focusDown
+  , focusUp
+  , focusDown
   -- , swapUp
   -- , swapDown
   , modify
@@ -192,9 +192,17 @@ modifyOutput f sid s
     withOutput f s
   | otherwise = s
 
+modify' :: (ListZipper (Either a (Tree l a)) -> ListZipper (Either a (Tree l a)))
+        -> StackSet i l a sid
+        -> StackSet i l a sid
+modify' f = modify (\tz -> tz & focusT . treeElements . _Just %~ f)
 -- focusUp, focusDown, swapUp, swapDown :: StackSet i l a sid -> StackSet i l a sid
--- focusUp   = modify' focusUp'
--- focusDown = modify' focusDown'
+
+focusUp :: StackSet i l a sid -> StackSet i l a sid
+focusUp = modify' focusUp'
+
+focusDown :: StackSet i l a sid -> StackSet i l a sid
+focusDown = modify' focusDown'
 
 -- swapUp    = modify' swapUp'
 -- swapDown  = modify' (reverseStack . swapUp' . reverseStack)
@@ -203,10 +211,10 @@ modifyOutput f sid s
 -- swapUp'  (Stack t (l:ls) rs) = Stack t ls (l:rs)
 -- swapUp'  (Stack t []     rs) = Stack t (reverse rs) []
 
--- focusUp', focusDown' :: Stack a -> Stack a
--- focusUp' (Stack t (l:ls) rs) = Stack l ls (t:rs)
--- focusUp' (Stack t []     rs) = Stack x xs [] where (x:xs) = reverse (t:rs)
--- focusDown'                   = reverseStack . focusUp' . reverseStack
+focusUp', focusDown' :: ListZipper a -> ListZipper a
+focusUp' (ListZipper t (l:ls) rs) = ListZipper l ls (t:rs)
+focusUp' (ListZipper t []     rs) = ListZipper x xs [] where (x:xs) = reverse (t:rs)
+focusDown' = reverseStack . focusUp' . reverseStack
 
--- reverseStack :: Stack a -> Stack a
--- reverseStack (Stack t ls rs) = Stack t rs ls
+reverseStack :: ListZipper a -> ListZipper a
+reverseStack (ListZipper t ls rs) = ListZipper t rs ls

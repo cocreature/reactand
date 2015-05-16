@@ -70,8 +70,8 @@ keyHandlers =
    ,(id
     ,void $
      spawnCommand "weston-terminal"))
-  -- ,((fromList [WlcBitModAlt],keysym_n),(focusDown,return ()))
-  -- ,((fromList [WlcBitModAlt],keysym_m),(focusUp,return ()))
+  ,((fromList [WlcBitModAlt],keysym_n),(focusDown,return ()))
+  ,((fromList [WlcBitModAlt],keysym_m),(focusUp,return ()))
   -- ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_N),(swapDown,return ()))
   -- ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),(swapUp,return ()))
   ,((fromList [WlcBitModAlt],keysym_0),(viewWorkspace "0",return ()))
