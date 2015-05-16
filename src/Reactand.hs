@@ -76,14 +76,14 @@ keyHandlers =
   -- ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),(swapUp,return ()))
   ,((fromList [WlcBitModAlt],keysym_0),(viewWorkspace "0",return ()))
   ,((fromList [WlcBitModAlt],keysym_1),(viewWorkspace "1",return ()))
-  -- ,((fromList [WlcBitModAlt],keysym_2),(viewWorkspace "2",return ()))
-  -- ,((fromList [WlcBitModAlt],keysym_3),(viewWorkspace "3",return ()))
-  -- ,((fromList [WlcBitModAlt],keysym_4),(viewWorkspace "4",return ()))
-  -- ,((fromList [WlcBitModAlt],keysym_5),(viewWorkspace "5",return ()))
-  -- ,((fromList [WlcBitModAlt],keysym_6),(viewWorkspace "6",return ()))
-  -- ,((fromList [WlcBitModAlt],keysym_7),(viewWorkspace "7",return ()))
-  -- ,((fromList [WlcBitModAlt],keysym_8),(viewWorkspace "8",return ()))
-  -- ,((fromList [WlcBitModAlt],keysym_9),(viewWorkspace "9",return ()))
+  ,((fromList [WlcBitModAlt],keysym_2),(viewWorkspace "2",return ()))
+  ,((fromList [WlcBitModAlt],keysym_3),(viewWorkspace "3",return ()))
+  ,((fromList [WlcBitModAlt],keysym_4),(viewWorkspace "4",return ()))
+  ,((fromList [WlcBitModAlt],keysym_5),(viewWorkspace "5",return ()))
+  ,((fromList [WlcBitModAlt],keysym_6),(viewWorkspace "6",return ()))
+  ,((fromList [WlcBitModAlt],keysym_7),(viewWorkspace "7",return ()))
+  ,((fromList [WlcBitModAlt],keysym_8),(viewWorkspace "8",return ()))
+  ,((fromList [WlcBitModAlt],keysym_9),(viewWorkspace "9",return ()))
   ]
 
 
