@@ -12,8 +12,8 @@ module StackSet
   , viewWorkspace
   , focusUp
   , focusDown
-  -- , swapUp
-  -- , swapDown
+  , swapUp
+  , swapDown
   , modify
   , modifyWithOutput
   , createOutput
@@ -196,7 +196,6 @@ modify' :: (ListZipper (Either a (Tree l a)) -> ListZipper (Either a (Tree l a))
         -> StackSet i l a sid
         -> StackSet i l a sid
 modify' f = modify (\tz -> tz & focusT . treeElements . _Just %~ f)
--- focusUp, focusDown, swapUp, swapDown :: StackSet i l a sid -> StackSet i l a sid
 
 focusUp :: StackSet i l a sid -> StackSet i l a sid
 focusUp = modify' focusUp'
@@ -204,12 +203,15 @@ focusUp = modify' focusUp'
 focusDown :: StackSet i l a sid -> StackSet i l a sid
 focusDown = modify' focusDown'
 
--- swapUp    = modify' swapUp'
--- swapDown  = modify' (reverseStack . swapUp' . reverseStack)
+swapUp :: StackSet i l a sid -> StackSet i l a sid
+swapUp    = modify' swapUp'
 
--- swapUp' :: Stack a -> Stack a
--- swapUp'  (Stack t (l:ls) rs) = Stack t ls (l:rs)
--- swapUp'  (Stack t []     rs) = Stack t (reverse rs) []
+swapDown :: StackSet i l a sid -> StackSet i l a sid
+swapDown  = modify' (reverseStack . swapUp' . reverseStack)
+
+swapUp' :: ListZipper a -> ListZipper a
+swapUp'  (ListZipper t (l:ls) rs) = ListZipper t ls (l:rs)
+swapUp'  (ListZipper t []     rs) = ListZipper t (reverse rs) []
 
 focusUp', focusDown' :: ListZipper a -> ListZipper a
 focusUp' (ListZipper t (l:ls) rs) = ListZipper l ls (t:rs)
