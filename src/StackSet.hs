@@ -177,7 +177,7 @@ modifyWithOutput :: Eq sid
 modifyWithOutput f sid s =
   s & current . _Just %~
       (\cur -> modifyOutput f
-                            (cur ^. screen)
+                            sid
                             cur)
     & visible %~map (modifyOutput f sid)
 
