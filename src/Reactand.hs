@@ -74,6 +74,8 @@ keyHandlers =
   ,((fromList [WlcBitModAlt],keysym_m),(focusUp,return ()))
   ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_N),(swapDown,return ()))
   ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),(swapUp,return ()))
+  ,((fromList [WlcBitModAlt],keysym_e),(nextOutput,return ()))
+  ,((fromList [WlcBitModAlt],keysym_a),(prevOutput,return ()))
   ,((fromList [WlcBitModAlt],keysym_0),(viewWorkspace "0",return ()))
   ,((fromList [WlcBitModAlt],keysym_1),(viewWorkspace "1",return ()))
   ,((fromList [WlcBitModAlt],keysym_2),(viewWorkspace "2",return ()))

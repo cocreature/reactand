@@ -18,11 +18,14 @@ module StackSet
   , modifyWithOutput
   , createOutput
   , removeOutput
+  , nextOutput
+  , prevOutput
   , delete'
   , workspace
   , current
   , visible
   , hidden
+  , screen
   , tag
   , mask
   , tree
@@ -220,3 +223,13 @@ focusDown' = reverseStack . focusUp' . reverseStack
 
 reverseStack :: ListZipper a -> ListZipper a
 reverseStack (ListZipper t ls rs) = ListZipper t rs ls
+
+nextOutput :: StackSet i l a sid -> StackSet i l a sid
+nextOutput (StackSet c [] h) = (StackSet c [] h)
+nextOutput (StackSet Nothing (x:xs) h) = (StackSet (Just x) xs h)
+nextOutput (StackSet (Just s) (x:xs) h) = (StackSet (Just x) (xs++ [s]) h)
+
+prevOutput :: StackSet i l a sid -> StackSet i l a sid
+prevOutput (StackSet c [] h) = (StackSet c [] h)
+prevOutput (StackSet Nothing xs h) = (StackSet (Just (last xs)) (init xs) h)
+prevOutput (StackSet (Just s) xs h) = (StackSet (Just (last xs)) (s: init xs) h)

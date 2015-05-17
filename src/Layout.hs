@@ -44,8 +44,9 @@ relayout :: LayoutClass l
          => StackSet i l WLCViewPtr WLCOutputPtr -> IO ()
 relayout s = do
   forOf_ (current . _Just) s layoutScreen
-  forOf_ (current . _Just . workspace . tree . focusT . treeElements . _Just . focusL . _Left) s wlcViewFocus
   forOf_ (visible . each) s layoutScreen
+  forOf_ (current . _Just . workspace . tree . focusT . treeElements . _Just . focusL . _Left) s wlcViewFocus
+  forOf_ (current . _Just . screen) s wlcOutputFocus
 
 layoutScreen :: LayoutClass l
              => Screen i l WLCViewPtr WLCOutputPtr -> IO ()
