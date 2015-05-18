@@ -1,3 +1,5 @@
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Tree
@@ -18,7 +20,7 @@ module Tree
   ,integrateTree
   ) where
 
-
+import Text.PrettyPrint.HughesPJClass
 import Control.Lens
 
 -- | l is an annotation at a branch
@@ -34,6 +36,17 @@ data ListZipper a =
              ,_rightL :: [a]}
   deriving (Show,Read,Eq,Ord)
 
+instance Pretty a => Pretty (ListZipper a) where
+  pPrint (ListZipper f l r) =
+    text "ListZipper" $$
+    nest 2
+         (text "focus =" <+>
+          pPrint f $$
+          text "left =" <+>
+          pPrint l $$
+          text "right =" <+>
+          pPrint r)
+
 makeLenses ''Tree
 makeLenses ''ListZipper
 
@@ -41,6 +54,18 @@ data TreeZipper l a =
   TreeZipper {_focusT :: Tree l a
              ,_parentsT :: [([Tree l a],l,[Tree l a])]}
   deriving (Show,Read,Eq,Ord)
+
+instance (Pretty (Tree l a),Pretty l) => Pretty (TreeZipper l a) where
+  pPrint (TreeZipper f p) =
+    text "TreeZipper" $$
+    nest 2
+         (text "focus =" <+>
+          pPrint f $$
+          text "parents =" <+>
+          pPrint p)
+
+instance (Pretty l,Pretty (ListZipper (Either a (Tree l a)))) => Pretty (Tree l a) where
+  pPrint (Tree l el) = text "Tree" $$ nest 2 (text "layout =" <+> pPrint l $$ text "elements =" <+> pPrint el)
 
 makeLenses ''TreeZipper
 

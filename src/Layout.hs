@@ -14,11 +14,15 @@ import StackSet
 import Data.List
 import WLC hiding (size)
 import Tree
+import Text.PrettyPrint.HughesPJClass
 
 class (Show layout) => LayoutClass layout where
   pureLayout :: layout -> WLCSize -> ListZipper a -> [(a,WLCGeometry)]
 
 data DefaultLayout = DefaultLayout deriving (Show,Eq,Ord)
+
+instance Pretty DefaultLayout where
+  pPrint _ = text "DefaultLayout"
 
 instance LayoutClass DefaultLayout where
   pureLayout _ size stack =

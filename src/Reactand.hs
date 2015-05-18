@@ -7,6 +7,7 @@ module Reactand where
 import Control.Monad
 import Control.Monad.Fix
 import Data.Set hiding (map,filter,foldr)
+import Text.PrettyPrint.HughesPJClass
 import Reflex
 import System.Process
 import Text.XkbCommon.KeysymList
@@ -40,7 +41,7 @@ reactand e =
            ,outputDestroyedEv]
      stacksetChanges' <-
        -- apply accumulated changes to stackset
-       mapDyn (\stackSet -> print stackSet >> relayout stackSet) =<<
+       mapDyn (\stackSet -> putStrLn (prettyShow stackSet) >> relayout stackSet) =<<
        (nubDyn <$>
         foldDyn ($) emptyStackSet (mergeWith (.) stacksetChanges))
      return $

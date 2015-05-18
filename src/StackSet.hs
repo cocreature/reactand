@@ -1,3 +1,5 @@
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveFunctor #-}
@@ -31,11 +33,12 @@ module StackSet
   , tree
   ) where
 
+import Control.Lens
 import Data.Function
 import Data.List
-import Control.Lens
 import Data.Maybe
 import Foreign.C.Types
+import Text.PrettyPrint.HughesPJClass
 import Tree
 
 delete' :: Eq a => a -> [a] -> ([a],Bool)
@@ -50,16 +53,46 @@ data StackSet i l a sid =
            ,_hidden :: [Workspace i l a]}
   deriving (Show,Read,Eq)
 
+instance (Pretty (Screen i l a sid),Pretty (Workspace i l a)) => Pretty (StackSet i l a sid) where
+  pPrint (StackSet c v h) =
+    text "StackSet" $$
+    nest 2
+         (text "current =" <+>
+          pPrint c $$
+          text "visible =" <+>
+          pPrint v $$
+          text "hidden =" <+>
+          pPrint h)
+
 data Workspace i l a =
   Workspace {_tag :: !i
             ,_mask :: !CUInt
             ,_tree :: TreeZipper l a}
   deriving (Show,Read,Eq)
 
+instance (Pretty i,Pretty (TreeZipper l a)) => Pretty (Workspace i l a) where
+  pPrint (Workspace i m t) =
+    text "Workspace" $$
+    nest 2
+         (text "tag =" <+>
+          pPrint i $$
+          text "mask =" <+>
+          pPrintShow m $$
+          text "tree = " <+>
+          pPrint t)
+
+pPrintShow :: Show a => a -> Doc
+pPrintShow = text . show
+
 data Screen i l a sid =
   Screen {_workspace :: !(Workspace i l a)
          ,_screen :: !sid}
   deriving (Show,Read,Eq)
+
+instance (Pretty (Workspace i l a),Pretty sid) => Pretty (Screen i l a sid) where
+  pPrint (Screen w sid) =
+    text "Screen" $$
+    nest 2 (pPrint w $$ pPrint sid)
 
 makeLenses ''StackSet
 makeLenses ''Workspace

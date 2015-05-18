@@ -42,7 +42,7 @@ emptyStackSet =
                                (2 ^ i)
                                (TreeZipper (Tree DefaultLayout Nothing)
                                            [])))
-                 [0 :: Int .. 9])
+                 [0 :: Int .. 1])
 
 -- | generate singleton map from dsum.
 singleton' :: GCompare k => DSum k -> DMap.DMap k
