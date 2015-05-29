@@ -79,4 +79,4 @@ executable reactand
   
   -- Base language which the package is written in.
   default-language:    Haskell2010
-  ghc-options:         -Wall -threaded -Werror
+  ghc-options:         -Wall -threaded
