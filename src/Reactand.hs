@@ -92,6 +92,7 @@ keyHandlers =
   ,((fromList [WlcBitModAlt],keysym_9),(viewWorkspace "9",return ()))
   ,((fromList [WlcBitModAlt],keysym_s),(modify split,putStrLn "SPLITTING"))
   ,((fromList [WlcBitModAlt],keysym_d),(modify moveDown,putStrLn "MOVING DOWN"))
+  ,((fromList [WlcBitModAlt],keysym_u),(modify moveUp,putStrLn "MOVING UP"))
   ]
 
 
@@ -141,4 +142,7 @@ outputDestroyed =
 outputResolution :: (Reflex t,MonadHold t m,MonadFix m)
                  => Event t OutputResolution
                  -> m (Event t (StackSetChange i l a WLCOutputPtr,IO ()))
-outputResolution = return . fmap (\(OutputResolution output old new) -> (id, putStrLn ("NEW RESOLUTION: " ++ show new)))
+outputResolution =
+  return .
+  fmap (\(OutputResolution _ _ new) ->
+          (id,putStrLn ("NEW RESOLUTION: " ++ show new)))

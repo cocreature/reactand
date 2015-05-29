@@ -16,6 +16,7 @@ module Tree
   ,focusT
   ,split
   ,moveDown
+  ,moveUp
   ,parentsT
   ,layout
   ,treeElements
@@ -115,3 +116,13 @@ moveDown :: TreeZipper l a -> TreeZipper l a
 moveDown (TreeZipper (Tree l Nothing) ps) = TreeZipper (Tree l Nothing) ps
 moveDown (TreeZipper (Tree l (Just (ListZipper (Left f) ls rs))) ps) = TreeZipper (Tree l (Just (ListZipper (Left f) ls rs))) ps
 moveDown (TreeZipper (Tree l (Just (ListZipper (Right t) ls rs))) ps) = TreeZipper t ((ls,l,rs):ps)
+
+moveUp :: TreeZipper l a -> TreeZipper l a
+moveUp (TreeZipper t []) = TreeZipper t []
+moveUp (TreeZipper t ((ls,l,rs):ps)) =
+  TreeZipper
+    (Tree l
+          (Just (ListZipper (Right t)
+                            ls
+                            rs)))
+    ps
