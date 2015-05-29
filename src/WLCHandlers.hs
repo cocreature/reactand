@@ -25,12 +25,14 @@ runWLC messages action = do
   viewDestroyedW <- wrapDestroyed (vDestroyed messages action)
   outputCreatedW <- wrapCreated (oCreated messages action)
   outputDestroyedW <- wrapDestroyed (oDestroyed messages action)
+  outputResolutionW <- wrapResolution (oResolution messages action)
   _ <- wlcInit (def & WLC.keyboard . keyboardKey .~ keyboardKeyW
                     & WLC.view . viewCreated .~ viewCreatedW
                     & WLC.view . viewFocus .~ viewFocusW
                     & WLC.view . viewDestroyed .~ viewDestroyedW
                     & WLC.output . outputCreated .~ outputCreatedW
-                    & WLC.output . outputDestroyed .~ outputDestroyedW) []
+                    & WLC.output . outputDestroyed .~ outputDestroyedW
+                    & WLC.output . outputResolution .~ outputResolutionW) []
   wlcRun
   wlcTerminate
   freeHaskellFunPtr keyboardKeyW
@@ -96,5 +98,13 @@ oDestroyed messages action output =
   do writeChan messages
                (TOutputDestroyed :=>
                 OutputDestroyed (WLCOutputPtr output))
+     act <- takeMVar action
+     act
+
+oResolution :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> WLCSizePtr -> WLCSizePtr -> IO ()
+oResolution messages action output old new =
+  do old' <- peek old
+     new' <- peek new
+     writeChan messages (TOutputResolution :=> OutputResolution (WLCOutputPtr output) old' new')
      act <- takeMVar action
      act

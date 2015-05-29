@@ -108,7 +108,7 @@ deleteFromWorkspace v ws = ws & tree %~ deleteFromTreeZipper v
 
 deleteFromTreeZipper :: Eq a => a -> TreeZipper l a -> TreeZipper l a
 deleteFromTreeZipper v tz = tz & focusT %~ deleteFromTree v
-                               & parentsT . mapped . _1_3 . mapped %~ deleteFromTree v
+                               & parentsT . mapped . _1_3 . mapped . _Right %~ deleteFromTree v
 
 
 _1_3 :: Traversal (a,c,a) (b,c,b) a b

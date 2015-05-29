@@ -14,6 +14,8 @@ module Tree
   ,leftL
   ,rightL
   ,focusT
+  ,split
+  ,moveDown
   ,parentsT
   ,layout
   ,treeElements
@@ -52,10 +54,10 @@ makeLenses ''ListZipper
 
 data TreeZipper l a =
   TreeZipper {_focusT :: Tree l a
-             ,_parentsT :: [([Tree l a],l,[Tree l a])]}
+             ,_parentsT :: [([Either a (Tree l a)],l,[Either a (Tree l a)])]}
   deriving (Show,Read,Eq,Ord)
 
-instance (Pretty (Tree l a),Pretty l) => Pretty (TreeZipper l a) where
+instance (Pretty (Tree l a),Pretty a,Pretty l) => Pretty (TreeZipper l a) where
   pPrint (TreeZipper f p) =
     text "TreeZipper" $$
     nest 2
@@ -96,6 +98,20 @@ integrateTree (TreeZipper f ((ls,l,rs):xs)) =
   integrateTree $
   flip TreeZipper xs $
   Tree l
-       (return (ListZipper (return f)
-                           (map return ls)
-                           (map return rs)))
+       (Just (ListZipper (Right f)
+                         ls
+                         rs))
+
+split :: TreeZipper l a -> TreeZipper l a
+split (TreeZipper (Tree l Nothing) p) = TreeZipper (Tree l Nothing) p
+split (TreeZipper (Tree l (Just (ListZipper f ls rs))) ps) =
+  TreeZipper
+    (Tree l
+          (Just (ListZipper (Right (Tree l (Just (ListZipper f [] []))))
+                            ls
+                            rs))) ps
+
+moveDown :: TreeZipper l a -> TreeZipper l a
+moveDown (TreeZipper (Tree l Nothing) ps) = TreeZipper (Tree l Nothing) ps
+moveDown (TreeZipper (Tree l (Just (ListZipper (Left f) ls rs))) ps) = TreeZipper (Tree l (Just (ListZipper (Left f) ls rs))) ps
+moveDown (TreeZipper (Tree l (Just (ListZipper (Right t) ls rs))) ps) = TreeZipper t ((ls,l,rs):ps)

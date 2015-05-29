@@ -6,7 +6,7 @@ module Reactand where
 
 import Control.Monad
 import Control.Monad.Fix
-import Data.Set hiding (map,filter,foldr)
+import Data.Set hiding (map,filter,foldr,split)
 import Text.PrettyPrint.HughesPJClass
 import Reflex
 import System.Process
@@ -18,6 +18,7 @@ import Helpers
 import Layout
 import StackSet
 import Types
+import Tree
 
 -- | reactive window manager
 reactand :: forall t m. WindowManager t m
@@ -32,13 +33,15 @@ reactand e =
        outputCreated (select selector TOutputCreated)
      outputDestroyedEv <-
        outputDestroyed (select selector TOutputDestroyed)
+     outputResolutionEv <- outputResolution (select selector TOutputResolution)
      let (stacksetChanges,actions) =
            unzip . fmap splitE $
            [keyEv
            ,viewCreatedEv
            ,viewDestroyedEv
            ,outputCreatedEv
-           ,outputDestroyedEv]
+           ,outputDestroyedEv
+           ,outputResolutionEv]
      stacksetChanges' <-
        -- apply accumulated changes to stackset
        mapDyn (\stackSet -> putStrLn (prettyShow stackSet) >> relayout stackSet) =<<
@@ -87,6 +90,8 @@ keyHandlers =
   ,((fromList [WlcBitModAlt],keysym_7),(viewWorkspace "7",return ()))
   ,((fromList [WlcBitModAlt],keysym_8),(viewWorkspace "8",return ()))
   ,((fromList [WlcBitModAlt],keysym_9),(viewWorkspace "9",return ()))
+  ,((fromList [WlcBitModAlt],keysym_s),(modify split,putStrLn "SPLITTING"))
+  ,((fromList [WlcBitModAlt],keysym_d),(modify moveDown,putStrLn "MOVING DOWN"))
   ]
 
 
@@ -132,3 +137,8 @@ outputDestroyed =
   return .
   fmap (\(OutputDestroyed output) ->
           (removeOutput output,return ()))
+
+outputResolution :: (Reflex t,MonadHold t m,MonadFix m)
+                 => Event t OutputResolution
+                 -> m (Event t (StackSetChange i l a WLCOutputPtr,IO ()))
+outputResolution = return . fmap (\(OutputResolution output old new) -> (id, putStrLn ("NEW RESOLUTION: " ++ show new)))
