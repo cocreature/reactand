@@ -15,6 +15,7 @@ module Types
   , WindowManager
   , StackSetChange
   , Actions
+  , Dir(..)
   , Action(..)
   ) where
 
@@ -68,16 +69,14 @@ data Action
   | CreateOutput WLCOutputPtr WLCSize
   | DestroyOutput WLCOutputPtr
   | SpawnCommand String
-  | FocusUp
-  | FocusDown
-  | SwapDown
-  | SwapUp
-  | NextOutput
-  | PrevOutput
+  | Focus Dir
+  | Swap Dir
+  | Output Dir
+  | Move Dir
   | Split
-  | MoveDown
-  | MoveUp
   | ViewWorkspace String
   | ChangeResolution WLCOutputPtr WLCSize
 
 type Actions = [Action]
+
+data Dir = Up | Down

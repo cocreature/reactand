@@ -74,15 +74,15 @@ interpretActions acts stackset =
           S.changeResolution output new
         update (DestroyView v) = S.deleteFromStackSet v
         update (DestroyOutput o) = S.removeOutput o
-        update FocusUp = S.focusUp
-        update FocusDown = S.focusDown
-        update SwapDown = S.swapDown
-        update SwapUp = S.swapUp
-        update NextOutput = S.nextOutput
-        update PrevOutput = S.prevOutput
+        update (Focus Up) = S.focusUp
+        update (Focus Down) = S.focusDown
+        update (Swap Down) = S.swapDown
+        update (Swap Up) = S.swapUp
+        update (Output Up) = S.nextOutput
+        update (Output Down) = S.prevOutput
         update Split = S.current . _Just . S.workspace . S.tree %~ T.split
-        update MoveDown = S.current . _Just . S.workspace . S.tree %~ T.moveDown
-        update MoveUp = S.current . _Just . S.workspace . S.tree %~ T.moveUp
+        update (Move Down) = S.current . _Just . S.workspace . S.tree %~ T.moveDown
+        update (Move Up) = S.current . _Just . S.workspace . S.tree %~ T.moveUp
         update (ViewWorkspace ws) = S.viewWorkspace ws
         update _ = id
 
@@ -112,12 +112,12 @@ key handlers =
 keyHandlers ::  [((Set WLCModifier,Keysym),Actions)]
 keyHandlers =
   [((fromList [WlcBitModAlt],keysym_Return),return $ SpawnCommand "weston-terminal")
-  ,((fromList [WlcBitModAlt],keysym_n),return FocusDown)
-  ,((fromList [WlcBitModAlt],keysym_m),return FocusUp)
-  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_N),return SwapDown)
-  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),return SwapUp)
-  ,((fromList [WlcBitModAlt],keysym_e),return $ NextOutput)
-  ,((fromList [WlcBitModAlt],keysym_a),return $ PrevOutput)
+  ,((fromList [WlcBitModAlt],keysym_n),return (Focus Down))
+  ,((fromList [WlcBitModAlt],keysym_m),return (Focus Up))
+  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_N),return (Swap Down))
+  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),return (Swap Up))
+  ,((fromList [WlcBitModAlt],keysym_e),return $ (Output Up))
+  ,((fromList [WlcBitModAlt],keysym_a),return $ (Output Down))
   ,((fromList [WlcBitModAlt],keysym_0),return $ ViewWorkspace "0")
   ,((fromList [WlcBitModAlt],keysym_1),return $ ViewWorkspace "1")
   ,((fromList [WlcBitModAlt],keysym_2),return $ ViewWorkspace "2")
@@ -129,8 +129,8 @@ keyHandlers =
   ,((fromList [WlcBitModAlt],keysym_8),return $ ViewWorkspace "8")
   ,((fromList [WlcBitModAlt],keysym_9),return $ ViewWorkspace "9")
   ,((fromList [WlcBitModAlt],keysym_s),return Split)
-  ,((fromList [WlcBitModAlt],keysym_d),return MoveDown)
-  ,((fromList [WlcBitModAlt],keysym_u),return MoveUp)]
+  ,((fromList [WlcBitModAlt],keysym_d),return (Move Down))
+  ,((fromList [WlcBitModAlt],keysym_u),return (Move Up))]
 
 -- | react to a new view
 viewCreated :: (Reflex t,MonadHold t m,MonadFix m)
