@@ -86,9 +86,10 @@ vDestroyed messages action view =
 
 oCreated :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> IO CBool
 oCreated messages action output =
-  do writeChan messages
+  do res <- wlcOutputGetResolution (WLCOutputPtr output)
+     writeChan messages
                (TOutputCreated :=>
-                OutputCreated (WLCOutputPtr output))
+                OutputCreated (WLCOutputPtr output) res)
      act <- takeMVar action
      act
      return 1

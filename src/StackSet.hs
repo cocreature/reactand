@@ -14,6 +14,7 @@ module StackSet
   , viewWorkspace
   , focusUp
   , focusDown
+  , changeResolution
   , swapUp
   , swapDown
   , modify
@@ -24,6 +25,7 @@ module StackSet
   , prevOutput
   , delete'
   , workspace
+  , resolution
   , current
   , visible
   , hidden
@@ -40,6 +42,7 @@ import Data.Maybe
 import Foreign.C.Types
 import Text.PrettyPrint.HughesPJClass
 import Tree
+import WLC
 
 delete' :: Eq a => a -> [a] -> ([a],Bool)
 delete' a xs =
@@ -86,13 +89,14 @@ pPrintShow = text . show
 
 data Screen i l a sid =
   Screen {_workspace :: !(Workspace i l a)
-         ,_screen :: !sid}
+         ,_screen :: !sid
+         ,_resolution :: !WLCSize}
   deriving (Show,Read,Eq)
 
 instance (Pretty (Workspace i l a),Pretty sid) => Pretty (Screen i l a sid) where
-  pPrint (Screen w sid) =
+  pPrint (Screen w sid size) =
     text "Screen" $$
-    nest 2 (pPrint w $$ pPrint sid)
+    nest 2 (pPrint w $$ pPrint sid $$ pPrintShow size)
 
 makeLenses ''StackSet
 makeLenses ''Workspace
@@ -166,14 +170,13 @@ viewWorkspace i s@(StackSet (Just currentScreen) visible' _)
 equating :: (Eq b) => (a -> b) -> a -> a -> Bool
 equating = on (==)
 
-createOutput :: sid -> StackSet i l a sid -> StackSet i l a sid
-createOutput _ (StackSet _ _ []) = error "No more workspaces available"
-createOutput sid s@(StackSet Nothing _ (x:xs)) =
-  s & current .~ Just (Screen x sid)
+createOutput :: sid -> WLCSize -> StackSet i l a sid -> StackSet i l a sid
+createOutput _ _ (StackSet _ _ []) = error "No more workspaces available"
+createOutput sid res s@(StackSet Nothing _ (x:xs)) =
+  s & current .~ Just (Screen x sid res)
     & hidden .~ xs
-
-createOutput sid s@(StackSet _ visible' (x:xs)) =
-  s & visible .~ (Screen x sid) : visible'
+createOutput sid res s@(StackSet _ visible' (x:xs)) =
+  s & visible .~ (Screen x sid res) : visible'
     & hidden .~ xs
 
 removeOutput :: Eq sid => sid -> StackSet i l a sid -> StackSet i l a sid
@@ -266,3 +269,14 @@ prevOutput :: StackSet i l a sid -> StackSet i l a sid
 prevOutput (StackSet c [] h) = (StackSet c [] h)
 prevOutput (StackSet Nothing xs h) = (StackSet (Just (last xs)) (init xs) h)
 prevOutput (StackSet (Just s) xs h) = (StackSet (Just (last xs)) (s: init xs) h)
+
+changeResolution' :: Eq sid => sid -> WLCSize -> Screen i l a sid -> Screen i l a sid
+changeResolution' sid res s
+  | sid == s ^. screen = s & resolution .~ res
+  | otherwise = s
+
+changeResolution :: Eq sid => sid -> WLCSize -> StackSet i l a sid -> StackSet i l a sid
+changeResolution sid res s =
+  s &
+  current . _Just %~ changeResolution' sid res &
+  visible . mapped %~ changeResolution' sid res

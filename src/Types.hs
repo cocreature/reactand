@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE GADTs #-}
@@ -12,17 +14,19 @@ module Types
   , OutputResolution(..)
   , WindowManager
   , StackSetChange
+  , Actions
+  , Action(..)
   ) where
 
 import Control.Monad.Fix
-import Data.Dependent.Map hiding (Key)
+import Data.Dependent.Map hiding (Key,split)
 import Data.GADT.Compare.TH
-import Data.Set
+import Data.Set hiding (split)
 import Reflex
 import Text.XkbCommon
 import WLC
 
-import StackSet
+import StackSet (StackSet(..))
 
 data Tag a where
      TKey :: Tag Key
@@ -44,7 +48,7 @@ data ViewCreated =
 
 data ViewDestroyed = ViewDestroyed WLCViewPtr deriving (Show,Eq,Ord)
 
-data OutputCreated = OutputCreated WLCOutputPtr deriving (Show,Eq,Ord)
+data OutputCreated = OutputCreated WLCOutputPtr WLCSize deriving (Show,Eq,Ord)
 
 data OutputDestroyed = OutputDestroyed WLCOutputPtr deriving (Show,Eq,Ord)
 
@@ -55,3 +59,25 @@ type StackSetChange i l a sid = StackSet i l a sid -> StackSet i l a sid
 
 deriveGEq ''Tag
 deriveGCompare ''Tag
+
+data Action
+  = InsertView WLCViewPtr
+               WLCOutputPtr
+  | FocusView WLCViewPtr
+  | DestroyView WLCViewPtr
+  | CreateOutput WLCOutputPtr WLCSize
+  | DestroyOutput WLCOutputPtr
+  | SpawnCommand String
+  | FocusUp
+  | FocusDown
+  | SwapDown
+  | SwapUp
+  | NextOutput
+  | PrevOutput
+  | Split
+  | MoveDown
+  | MoveUp
+  | ViewWorkspace String
+  | ChangeResolution WLCOutputPtr WLCSize
+
+type Actions = [Action]

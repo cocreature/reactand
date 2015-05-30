@@ -4,27 +4,29 @@
 
 module Reactand where
 
-import Control.Monad
-import Control.Monad.Fix
-import Data.Set hiding (map,filter,foldr,split)
-import Text.PrettyPrint.HughesPJClass
-import Reflex
-import System.Process
-import Text.XkbCommon.KeysymList
-import Text.XkbCommon
-import WLC
+import           Control.Lens hiding (view)
+import           Control.Monad
+import           Control.Monad.Fix
+import           Data.Set hiding (map,filter,foldr,split)
+import           Reflex
+import qualified System.Process as P
+import           Text.PrettyPrint.HughesPJClass
+import           Text.XkbCommon
+import           Text.XkbCommon.KeysymList
+import           WLC
 
-import Helpers
-import Layout
-import StackSet
-import Types
-import Tree
+import           Helpers
+import           Layout
+import qualified StackSet as S
+import           Types
+import qualified Tree as T
 
 -- | reactive window manager
 reactand :: forall t m. WindowManager t m
 reactand e =
   do let selector = fan (singleton' <$> e)
-     keyEv <- key keyHandlers (select selector TKey)
+     keyEv <-
+       key keyHandlers (select selector TKey)
      viewCreatedEv <-
        viewCreated (select selector TViewCreated)
      viewDestroyedEv <-
@@ -33,28 +35,69 @@ reactand e =
        outputCreated (select selector TOutputCreated)
      outputDestroyedEv <-
        outputDestroyed (select selector TOutputDestroyed)
-     outputResolutionEv <- outputResolution (select selector TOutputResolution)
-     let (stacksetChanges,actions) =
-           unzip . fmap splitE $
+     outputResolutionEv <-
+       outputResolution (select selector TOutputResolution)
+     let actions =
+           mergeWith (>>) $
            [keyEv
            ,viewCreatedEv
            ,viewDestroyedEv
            ,outputCreatedEv
            ,outputDestroyedEv
            ,outputResolutionEv]
+     stackSetDyn <-
+       nubDyn <$> foldDyn interpretActions emptyStackSet actions
      stacksetChanges' <-
        -- apply accumulated changes to stackset
-       mapDyn (\stackSet -> putStrLn (prettyShow stackSet) >> relayout stackSet) =<<
-       (nubDyn <$>
-        foldDyn ($) emptyStackSet (mergeWith (.) stacksetChanges))
+       mapDyn
+         ((\stackSet ->
+             putStrLn (prettyShow stackSet) >>
+             relayout stackSet))
+         stackSetDyn
      return $
-       mergeWith (>>) (updated stacksetChanges' : actions)
+       mergeWith (>>) (updated stacksetChanges' : [interpretIOActions <$> actions])
+
+interpretActions :: Actions
+                 -> (S.StackSet String DefaultLayout WLCViewPtr WLCOutputPtr)
+                 -> (S.StackSet String DefaultLayout WLCViewPtr WLCOutputPtr)
+interpretActions acts stackset =
+  foldr (\x acc -> update x . acc) id acts $
+  stackset
+  where update :: Action
+               -> S.StackSet String DefaultLayout WLCViewPtr WLCOutputPtr
+               -> S.StackSet String DefaultLayout WLCViewPtr WLCOutputPtr
+        update (CreateOutput output res) =
+          S.createOutput output res
+        update (InsertView view output) =
+          insertViewInOutput DefaultLayout view output
+        update (ChangeResolution output new) =
+          S.changeResolution output new
+        update (DestroyView v) = S.deleteFromStackSet v
+        update (DestroyOutput o) = S.removeOutput o
+        update FocusUp = S.focusUp
+        update FocusDown = S.focusDown
+        update SwapDown = S.swapDown
+        update SwapUp = S.swapUp
+        update NextOutput = S.nextOutput
+        update PrevOutput = S.prevOutput
+        update Split = S.current . _Just . S.workspace . S.tree %~ T.split
+        update MoveDown = S.current . _Just . S.workspace . S.tree %~ T.moveDown
+        update MoveUp = S.current . _Just . S.workspace . S.tree %~ T.moveUp
+        update (ViewWorkspace ws) = S.viewWorkspace ws
+        update _ = id
+
+interpretIOActions :: Actions -> IO ()
+interpretIOActions = mapM_ run
+  where run :: Action -> IO ()
+        run (SpawnCommand c) = void $ P.spawnCommand c
+        run (FocusView v) = wlcViewFocus v
+        run _ = return ()
 
 -- | react to key events
 key :: (Reflex t,MonadHold t m,MonadFix m)
-    => [((Set WLCModifier,Keysym),(StackSetChange i l a sid,IO ()))]
+    => [((Set WLCModifier,Keysym),Actions)]
     -> Event t Key
-    -> m (Event t (StackSetChange i l a sid,IO ()))
+    -> m (Event t Actions)
 key handlers =
   return .
   fmapMaybe (\case
@@ -63,86 +106,71 @@ key handlers =
                  map snd $
                  filter (\((mods',sym'),_) -> mods == mods' && sym == sym') handlers
                Key _ _ _ -> Nothing)
-  where f (change,act) Nothing =
-          Just (change,act)
-        f (change,act) (Just (change',act')) =
-          Just (change . change',act >> act')
+  where f act Nothing = Just act
+        f act (Just act') = Just (act >> act')
 
-keyHandlers :: Eq sid => [((Set WLCModifier,Keysym),(StackSetChange String l a sid,IO ()))]
+keyHandlers ::  [((Set WLCModifier,Keysym),Actions)]
 keyHandlers =
-  [((fromList [WlcBitModAlt],keysym_Return)
-   ,(id
-    ,void $
-     spawnCommand "weston-terminal"))
-  ,((fromList [WlcBitModAlt],keysym_n),(focusDown,return ()))
-  ,((fromList [WlcBitModAlt],keysym_m),(focusUp,return ()))
-  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_N),(swapDown,return ()))
-  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),(swapUp,return ()))
-  ,((fromList [WlcBitModAlt],keysym_e),(nextOutput,return ()))
-  ,((fromList [WlcBitModAlt],keysym_a),(prevOutput,return ()))
-  ,((fromList [WlcBitModAlt],keysym_0),(viewWorkspace "0",return ()))
-  ,((fromList [WlcBitModAlt],keysym_1),(viewWorkspace "1",return ()))
-  ,((fromList [WlcBitModAlt],keysym_2),(viewWorkspace "2",return ()))
-  ,((fromList [WlcBitModAlt],keysym_3),(viewWorkspace "3",return ()))
-  ,((fromList [WlcBitModAlt],keysym_4),(viewWorkspace "4",return ()))
-  ,((fromList [WlcBitModAlt],keysym_5),(viewWorkspace "5",return ()))
-  ,((fromList [WlcBitModAlt],keysym_6),(viewWorkspace "6",return ()))
-  ,((fromList [WlcBitModAlt],keysym_7),(viewWorkspace "7",return ()))
-  ,((fromList [WlcBitModAlt],keysym_8),(viewWorkspace "8",return ()))
-  ,((fromList [WlcBitModAlt],keysym_9),(viewWorkspace "9",return ()))
-  ,((fromList [WlcBitModAlt],keysym_s),(modify split,putStrLn "SPLITTING"))
-  ,((fromList [WlcBitModAlt],keysym_d),(modify moveDown,putStrLn "MOVING DOWN"))
-  ,((fromList [WlcBitModAlt],keysym_u),(modify moveUp,putStrLn "MOVING UP"))
-  ]
-
-
+  [((fromList [WlcBitModAlt],keysym_Return),return $ SpawnCommand "weston-terminal")
+  ,((fromList [WlcBitModAlt],keysym_n),return FocusDown)
+  ,((fromList [WlcBitModAlt],keysym_m),return FocusUp)
+  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_N),return SwapDown)
+  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),return SwapUp)
+  ,((fromList [WlcBitModAlt],keysym_e),return $ NextOutput)
+  ,((fromList [WlcBitModAlt],keysym_a),return $ PrevOutput)
+  ,((fromList [WlcBitModAlt],keysym_0),return $ ViewWorkspace "0")
+  ,((fromList [WlcBitModAlt],keysym_1),return $ ViewWorkspace "1")
+  ,((fromList [WlcBitModAlt],keysym_2),return $ ViewWorkspace "2")
+  ,((fromList [WlcBitModAlt],keysym_3),return $ ViewWorkspace "3")
+  ,((fromList [WlcBitModAlt],keysym_4),return $ ViewWorkspace "4")
+  ,((fromList [WlcBitModAlt],keysym_5),return $ ViewWorkspace "5")
+  ,((fromList [WlcBitModAlt],keysym_6),return $ ViewWorkspace "6")
+  ,((fromList [WlcBitModAlt],keysym_7),return $ ViewWorkspace "7")
+  ,((fromList [WlcBitModAlt],keysym_8),return $ ViewWorkspace "8")
+  ,((fromList [WlcBitModAlt],keysym_9),return $ ViewWorkspace "9")
+  ,((fromList [WlcBitModAlt],keysym_s),return Split)
+  ,((fromList [WlcBitModAlt],keysym_d),return MoveDown)
+  ,((fromList [WlcBitModAlt],keysym_u),return MoveUp)]
 
 -- | react to a new view
 viewCreated :: (Reflex t,MonadHold t m,MonadFix m)
                      => Event t ViewCreated
-                     -> m (Event t (StackSetChange String
-                                                   DefaultLayout
-                                                   WLCViewPtr WLCOutputPtr,
-                                    IO ()))
+                     -> m (Event t Actions)
 viewCreated =
   return .
   fmap (\(ViewCreated view output) ->
-               (\stackset ->
-                       insertViewInOutput DefaultLayout stackset view output
-                    ,wlcViewFocus view))
+          [InsertView view output,
+          FocusView view])
 
 -- | react to destroyed view
 viewDestroyed :: (Reflex t,MonadHold t m,MonadFix m)
               => Event t ViewDestroyed
-              -> m (Event t (StackSetChange String
-                                            DefaultLayout
-                                            WLCViewPtr WLCOutputPtr,
-                             IO ()))
+              -> m (Event t Actions)
 viewDestroyed =
   return .
   fmap (\(ViewDestroyed view) ->
-          (deleteFromStackSet view,return ()))
+          return $ DestroyView view)
 
 -- | react to new output
 outputCreated :: (Reflex t,MonadHold t m,MonadFix m)
                        => Event t OutputCreated
-                       -> m (Event t (StackSetChange i l a WLCOutputPtr,IO ()))
+                       -> m (Event t Actions)
 outputCreated =
   return .
-  fmap (\(OutputCreated output) ->
-          (createOutput output,return ()))
+  fmap (\(OutputCreated output res) ->
+          return $ CreateOutput output res)
 
 -- | react to destroyed output
-outputDestroyed :: (Reflex t,MonadHold t m,MonadFix m) => Event t OutputDestroyed -> m (Event t (StackSetChange i l a WLCOutputPtr, IO ()))
+outputDestroyed :: (Reflex t,MonadHold t m,MonadFix m)
+                => Event t OutputDestroyed -> m (Event t Actions)
 outputDestroyed =
   return .
-  fmap (\(OutputDestroyed output) ->
-          (removeOutput output,return ()))
+  fmap (\(OutputDestroyed output) -> return $ DestroyOutput output)
 
 outputResolution :: (Reflex t,MonadHold t m,MonadFix m)
                  => Event t OutputResolution
-                 -> m (Event t (StackSetChange i l a WLCOutputPtr,IO ()))
+                 -> m (Event t Actions)
 outputResolution =
   return .
-  fmap (\(OutputResolution _ _ new) ->
-          (id,putStrLn ("NEW RESOLUTION: " ++ show new)))
+  fmap (\(OutputResolution output _ new) ->
+          return $ ChangeResolution output new)

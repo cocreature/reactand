@@ -54,8 +54,7 @@ relayout s = do
 
 layoutScreen :: LayoutClass l
              => Screen i l WLCViewPtr WLCOutputPtr -> IO ()
-layoutScreen (Screen w sid) = do
-  res <- wlcOutputGetResolution sid
+layoutScreen (Screen w sid res) = do
   wlcOutputSetMask sid (w ^. mask)
   layoutWorkspace res w
 
@@ -91,11 +90,11 @@ layoutTree screenSize mainTree =
 
 -- | insert the view into workspace that is focused on the output
 insertViewInOutput :: l
-                   -> StackSet i l WLCViewPtr WLCOutputPtr
                    -> WLCViewPtr
                    -> WLCOutputPtr
                    -> StackSet i l WLCViewPtr WLCOutputPtr
-insertViewInOutput l s v output =
+                   -> StackSet i l WLCViewPtr WLCOutputPtr
+insertViewInOutput l v output s =
   modifyWithOutput (insertUp l v)
                    output
                    s
