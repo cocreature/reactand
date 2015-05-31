@@ -1,8 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 module LayoutType
        (Layout(..)
-       ,defaultLayout
-       ,calculateGeometry
        ,tabbedLayout
        ,horizontalLayout
        ,verticalLayout
@@ -27,19 +25,6 @@ instance Show Layout where
 
 instance Pretty Layout where
   pPrint (Layout _ s) = text "Layout " <+> text s
-
-defaultLayout :: Layout
-defaultLayout = simpleLayout calculateGeometry "Default"
-
-calculateGeometry :: CInt -> CInt -> WLCSize -> WLCGeometry
-calculateGeometry total i (WLCSize resW resH)
-  | total == 0 = error "No windows found"
-  | i == total - 1 && i `mod` 2 == 0 = WLCGeometry (WLCOrigin x y) (WLCSize resW h)
-  | otherwise = WLCGeometry (WLCOrigin x y) (WLCSize w h)
-  where x = (i `mod` 2) * (fromIntegral resW `div` 2)
-        y = (i `div` 2) * (fromIntegral resH `div` ((total + 1) `div` 2))
-        w = resW `div` 2
-        h = resH `div` ((fromIntegral total + 1) `div` 2)
 
 tabbedLayout :: Layout
 tabbedLayout =

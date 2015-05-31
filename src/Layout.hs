@@ -72,4 +72,4 @@ cycleLayout (Layout _ "Horizontal") = verticalLayout
 cycleLayout (Layout _ "Vertical") = tallLayout
 cycleLayout (Layout _ "Tall") = wideLayout
 cycleLayout (Layout _ "Wide") = tabbedLayout
-cycleLayout _ = defaultLayout
+cycleLayout _ = horizontalLayout
