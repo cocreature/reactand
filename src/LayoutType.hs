@@ -29,16 +29,7 @@ instance Pretty Layout where
   pPrint (Layout _ s) = text "Layout " <+> text s
 
 defaultLayout :: Layout
-defaultLayout =
-  Layout (\size' stack ->
-            let stackList = integrate stack
-            in zip stackList
-                   (map (\i ->
-                           calculateGeometry (fromIntegral $ length stackList)
-                                             i
-                                             size')
-                        [0 ..]))
-         "Default"
+defaultLayout = simpleLayout calculateGeometry "Default"
 
 calculateGeometry :: CInt -> CInt -> WLCSize -> WLCGeometry
 calculateGeometry total i (WLCSize resW resH)
@@ -58,16 +49,7 @@ tabbedLayout =
          "Tabbed"
 
 horizontalLayout :: Layout
-horizontalLayout =
-  Layout (\size' stack ->
-            let stackList = integrate stack
-            in zip stackList
-                   (map (\i ->
-                           horizontalSplit (fromIntegral $ length stackList)
-                                           i
-                                           size')
-                        [0 ..]))
-         "Horizontal"
+horizontalLayout = simpleLayout horizontalSplit "Horizontal"
 
 horizontalSplit :: CInt -> CInt -> WLCSize -> WLCGeometry
 horizontalSplit total i (WLCSize w h)
@@ -76,16 +58,7 @@ horizontalSplit total i (WLCSize w h)
   where deltaX = w `div` fromIntegral total
 
 verticalLayout :: Layout
-verticalLayout =
-  Layout (\size' stack ->
-            let stackList = integrate stack
-            in zip stackList
-                   (map (\i ->
-                           verticalSplit (fromIntegral $ length stackList)
-                                         i
-                                         size')
-                        [0 ..]))
-         "Vertical"
+verticalLayout = simpleLayout verticalSplit "Vertical"
 
 verticalSplit :: CInt -> CInt -> WLCSize -> WLCGeometry
 verticalSplit total i (WLCSize w h)
@@ -94,14 +67,7 @@ verticalSplit total i (WLCSize w h)
   where deltaY = h `div` fromIntegral total
 
 tallLayout :: Layout
-tallLayout =
-  Layout (\size' stack ->
-            let stackList = integrate stack
-            in zip stackList
-                   (map (\i ->
-                           tallSplit (fromIntegral $ length stackList) i size')
-                        [0 ..]))
-         "Tall"
+tallLayout = simpleLayout tallSplit "Tall"
 
 tallSplit :: CInt -> CInt -> WLCSize -> WLCGeometry
 tallSplit total i (WLCSize w h)
@@ -121,14 +87,7 @@ tallSplit total i (WLCSize w h)
         w' = fromIntegral w `div` 2
 
 wideLayout :: Layout
-wideLayout =
-  Layout (\size' stack ->
-            let stackList = integrate stack
-            in zip stackList
-                   (map (\i ->
-                           wideSplit (fromIntegral $ length stackList) i size')
-                        [0 ..]))
-         "Wide"
+wideLayout = simpleLayout wideSplit "Wide"
 
 wideSplit :: CInt -> CInt -> WLCSize -> WLCGeometry
 wideSplit total i (WLCSize w h)
@@ -137,3 +96,12 @@ wideSplit total i (WLCSize w h)
   | otherwise = WLCGeometry (WLCOrigin ((i-1) * fromIntegral deltaX) h') (WLCSize deltaX (fromIntegral h'))
   where deltaX = w `div` (fromIntegral total -1)
         h' = fromIntegral h `div` 2
+
+simpleLayout :: (CInt -> CInt -> WLCSize -> WLCGeometry) -> String -> Layout
+simpleLayout f s = Layout (\size' stack ->
+                                  let stackList = integrate stack
+                                  in zip stackList
+                                         (map (\i ->
+                                                 f (fromIntegral $ length stackList) i size')
+                                              [0 ..]))
+                               s
