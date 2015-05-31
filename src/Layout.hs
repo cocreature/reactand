@@ -69,5 +69,6 @@ insertViewInOutput l v output s =
 cycleLayout :: Layout -> Layout
 cycleLayout (Layout _ "Tabbed") = horizontalLayout
 cycleLayout (Layout _ "Horizontal") = verticalLayout
-cycleLayout (Layout _ "Vertical") = tabbedLayout
+cycleLayout (Layout _ "Vertical") = tallLayout
+cycleLayout (Layout _ "Tall") = tabbedLayout
 cycleLayout _ = defaultLayout

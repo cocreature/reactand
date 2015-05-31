@@ -1,7 +1,12 @@
 {-# LANGUAGE RankNTypes #-}
 module LayoutType
-       (Layout(..), defaultLayout, calculateGeometry, tabbedLayout,
-        horizontalLayout, verticalLayout)
+       (Layout(..)
+       ,defaultLayout
+       ,calculateGeometry
+       ,tabbedLayout
+       ,horizontalLayout
+       ,verticalLayout
+       ,tallLayout)
        where
 
 import Text.PrettyPrint.HughesPJClass
@@ -86,3 +91,30 @@ verticalSplit total i (WLCSize w h)
   | total == 0 = error "No windows found"
   | otherwise = WLCGeometry (WLCOrigin 0 (i * fromIntegral deltaY)) (WLCSize w deltaY)
   where deltaY = h `div` fromIntegral total
+
+tallLayout :: Layout
+tallLayout =
+  Layout (\size' stack ->
+            let stackList = integrate stack
+            in zip stackList
+                   (map (\i ->
+                           tallSplit (fromIntegral $ length stackList) i size')
+                        [0 ..]))
+         "Tall"
+
+tallSplit :: CInt -> CInt -> WLCSize -> WLCGeometry
+tallSplit total i (WLCSize w h)
+  | total == 0 = error "No windows found"
+  | i == 0 =
+    WLCGeometry (WLCOrigin 0 0)
+                (WLCSize (w `div` 2) h)
+  | otherwise =
+    WLCGeometry
+      (WLCOrigin w'
+                 ((i - 1) *
+                  fromIntegral deltaY))
+      (WLCSize (fromIntegral w') deltaY)
+  where deltaY =
+          h `div`
+          (fromIntegral total - 1)
+        w' = fromIntegral w `div` 2
