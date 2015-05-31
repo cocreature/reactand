@@ -72,6 +72,7 @@ data Action
   | Split
   | ViewWorkspace String
   | ChangeResolution WLCOutputPtr WLCSize
+  | Cycle
 
 type Actions = [Action]
 

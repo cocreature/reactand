@@ -1,5 +1,5 @@
 {-# LANGUAGE RankNTypes #-}
-module LayoutType (Layout(..), defaultLayout, calculateGeometry)
+module LayoutType (Layout(..), defaultLayout, calculateGeometry,tabbedLayout)
        where
 
 import Text.PrettyPrint.HughesPJClass
@@ -30,7 +30,7 @@ defaultLayout =
                                              i
                                              size')
                         (zip stackList [0 ..])))
-         "DefaultLayout"
+         "Default"
 
 calculateGeometry :: CInt -> CInt -> WLCSize -> WLCGeometry
 calculateGeometry total i (WLCSize resW resH)
@@ -41,3 +41,10 @@ calculateGeometry total i (WLCSize resW resH)
         y = (i `div` 2) * (fromIntegral resH `div` ((total + 1) `div` 2))
         w = resW `div` 2
         h = resH `div` ((fromIntegral total + 1) `div` 2)
+
+tabbedLayout :: Layout
+tabbedLayout =
+  Layout (\size' stack ->
+            let stackList = integrate stack
+            in zip stackList (repeat (WLCGeometry (WLCOrigin 0 0) size')))
+         "Tabbed"

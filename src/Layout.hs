@@ -5,6 +5,7 @@
 module Layout 
   (defaultLayout
   ,relayout
+  ,cycleLayout
   ,insertViewInOutput
   ) where
 
@@ -15,11 +16,15 @@ import Tree
 import LayoutType
 
 relayout :: StackSet i WLCViewPtr WLCOutputPtr -> IO ()
-relayout s = do
-  forOf_ (current . _Just) s layoutScreen
-  forOf_ (visible . each) s layoutScreen
-  forOf_ (current . _Just . workspace . tree . focusT . treeElements . _Just . focusL . _Left) s wlcViewFocus
-  forOf_ (current . _Just . screen) s wlcOutputFocus
+relayout s =
+  do forOf_ (current . _Just) s layoutScreen
+     forOf_ (visible . each) s layoutScreen
+     forOf_ (current . _Just . workspace . tree . focusT . treeElements . _Just .
+                                                                          focusL .
+                                                                          _Left)
+            s
+            (\v -> wlcViewFocus v >> wlcViewBringToFront v)
+     forOf_ (current . _Just . screen) s wlcOutputFocus
 
 layoutScreen :: Screen i WLCViewPtr WLCOutputPtr -> IO ()
 layoutScreen (Screen w sid res) = do
@@ -65,3 +70,8 @@ insertViewInOutput l v output s =
   modifyWithOutput (insertUp l v)
                    output
                    s
+
+cycleLayout :: Layout -> Layout
+cycleLayout (Layout _ "Default") = tabbedLayout
+cycleLayout (Layout _ "Tabbed") = defaultLayout
+cycleLayout _ = defaultLayout

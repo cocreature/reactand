@@ -84,6 +84,7 @@ interpretActions acts stackset =
         update (Move Down) = S.current . _Just . S.workspace . S.tree %~ T.moveDown
         update (Move Up) = S.current . _Just . S.workspace . S.tree %~ T.moveUp
         update (ViewWorkspace ws) = S.viewWorkspace ws
+        update Cycle = S.current . _Just . S.workspace . S.tree . T.focusT . T.layout %~ cycleLayout
         update _ = id
 
 interpretIOActions :: Actions -> IO ()
@@ -130,7 +131,8 @@ keyHandlers =
   ,((fromList [WlcBitModAlt],keysym_9),return $ ViewWorkspace "9")
   ,((fromList [WlcBitModAlt],keysym_s),return Split)
   ,((fromList [WlcBitModAlt],keysym_d),return (Move Down))
-  ,((fromList [WlcBitModAlt],keysym_u),return (Move Up))]
+  ,((fromList [WlcBitModAlt],keysym_u),return (Move Up))
+  ,((fromList [WlcBitModAlt],keysym_space),return $ Cycle)]
 
 -- | react to a new view
 viewCreated :: (Reflex t,MonadHold t m,MonadFix m)
