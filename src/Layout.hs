@@ -40,13 +40,14 @@ layoutTree screenSize mainTree =
   where go _ (Tree _ Nothing) = return ()
         go (WLCGeometry (WLCOrigin x y) size) (Tree l (Just z)) =
           let arrangement =
-                map (_2 %~
-                         (\(WLCGeometry (WLCOrigin x' y') size') ->
-                            WLCGeometry
-                              (WLCOrigin (x + x')
-                                         (y + y'))
-                              size')) $
-                getLayout l size z
+                getLayout l size z &
+                each .
+                _2 %~
+                (\(WLCGeometry (WLCOrigin x' y') size') ->
+                   WLCGeometry
+                     (WLCOrigin (x + x')
+                                (y + y'))
+                     size')
           in mapM_ recurse arrangement
         recurse ((Left v),geometry) =
           wlcViewSetGeometry v geometry >>
