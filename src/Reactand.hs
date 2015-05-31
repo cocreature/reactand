@@ -56,7 +56,7 @@ reactand e =
              relayout stackSet))
          stackSetDyn
      return $
-       mergeWith (>>) (updated stacksetChanges' : [interpretIOActions <$> actions])
+       mergeWith (>>) (updated stacksetChanges' : [interpretIOActions <$> (attach (current stackSetDyn) actions)])
 
 interpretActions :: Actions
                  -> (S.StackSet String WLCViewPtr WLCOutputPtr)
@@ -92,11 +92,14 @@ interpretActions acts stackset =
                               T.moveViewUp
         update _ = id
 
-interpretIOActions :: Actions -> IO ()
-interpretIOActions = mapM_ run
+interpretIOActions :: (S.StackSet String WLCViewPtr WLCOutputPtr, Actions) -> IO ()
+interpretIOActions (s,acts) = mapM_ run acts
   where run :: Action -> IO ()
         run (SpawnCommand c) = void $ P.spawnCommand c
         run (FocusView v) = wlcViewFocus v
+        run Close = mapM_ wlcViewClose
+                          (s ^? S.current . _Just . S.workspace . S.tree . T.focusT .
+                           T.treeElements . _Just . T.focusL . _Left)
         run _ = return ()
 
 -- | react to key events
@@ -138,7 +141,8 @@ keyHandlers =
   ,((fromList [WlcBitModAlt],keysym_d),return (Move Down))
   ,((fromList [WlcBitModAlt],keysym_u),return (Move Up))
   ,((fromList [WlcBitModAlt],keysym_space),return $ Cycle)
-  ,((fromList [WlcBitModAlt],keysym_i),return $ MoveViewUp)]
+  ,((fromList [WlcBitModAlt],keysym_i),return $ MoveViewUp)
+  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_X),return $ Close)]
 
 -- | react to a new view
 viewCreated :: (Reflex t,MonadHold t m,MonadFix m)

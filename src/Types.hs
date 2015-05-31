@@ -74,6 +74,7 @@ data Action
   | ChangeResolution WLCOutputPtr WLCSize
   | Cycle
   | MoveViewUp
+  | Close
 
 type Actions = [Action]
 
