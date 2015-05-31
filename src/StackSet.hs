@@ -103,6 +103,13 @@ makeLenses ''StackSet
 makeLenses ''Workspace
 makeLenses ''Screen
 
+deleteEmpty :: Eq a => TreeZipper l a -> TreeZipper l a
+deleteEmpty (TreeZipper t []) = (TreeZipper t [])
+deleteEmpty tz@(TreeZipper (Tree _ (Just _)) _) = tz
+deleteEmpty (TreeZipper _ (([],l,[]):p)) = TreeZipper (Tree l Nothing) p
+deleteEmpty (TreeZipper _ ((x:xs,l,rs):p)) = TreeZipper (Tree l (Just (ListZipper x xs rs))) p
+deleteEmpty (TreeZipper _ (([],l,x:xs):p)) = TreeZipper (Tree l (Just (ListZipper x [] xs))) p
+
 deleteFromStackSet :: Eq a => a -> StackSet i a sid -> StackSet i a sid
 deleteFromStackSet v s = s & current . _Just . workspace %~ deleteFromWorkspace v
                            & visible . mapped . workspace %~ deleteFromWorkspace v
@@ -112,13 +119,11 @@ deleteFromWorkspace :: Eq a => a -> Workspace i a -> Workspace i a
 deleteFromWorkspace v ws = ws & tree %~ deleteFromTreeZipper v
 
 deleteFromTreeZipper :: Eq a => a -> TreeZipper l a -> TreeZipper l a
-deleteFromTreeZipper v tz = tz & focusT %~ deleteFromTree v
-                               & parentsT . mapped . _1_3 . mapped . _Right %~ deleteFromTree v
-
+deleteFromTreeZipper v tz = deleteEmpty $ tz & focusT %~ deleteFromTree v
+                                             & parentsT . mapped . _1_3 . mapped . _Right %~ deleteFromTree v
 
 _1_3 :: Traversal (a,c,a) (b,c,b) a b
 _1_3 f (a,b,c) = (\x y -> (x,b,y)) <$> f a <*> f c
-
 
 deleteFromTree :: Eq a => a -> Tree l a -> Tree l a
 deleteFromTree v t = t & treeElements %~ (deleteFromListZipper v =<<)
