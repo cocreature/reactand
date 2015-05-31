@@ -70,7 +70,7 @@ interpretActions acts stackset =
         update (CreateOutput output res) =
           S.createOutput output res
         update (InsertView view output) =
-          insertViewInOutput horizontalLayout  view output
+          insertViewInOutput horizontalLayout view output
         update (ChangeResolution output new) =
           S.changeResolution output new
         update (DestroyView v) = S.deleteFromStackSet v
@@ -82,10 +82,14 @@ interpretActions acts stackset =
         update (Output Up) = S.nextOutput
         update (Output Down) = S.prevOutput
         update Split = S.current . _Just . S.workspace . S.tree %~ T.split
-        update (Move Down) = S.current . _Just . S.workspace . S.tree %~ T.moveDown
+        update (Move Down) = S.current . _Just . S.workspace . S.tree %~
+                             T.moveDown
         update (Move Up) = S.current . _Just . S.workspace . S.tree %~ T.moveUp
         update (ViewWorkspace ws) = S.viewWorkspace ws
-        update Cycle = S.current . _Just . S.workspace . S.tree . T.focusT . T.layout %~ cycleLayout
+        update Cycle = S.current . _Just . S.workspace . S.tree . T.focusT .
+                       T.layout %~ cycleLayout
+        update (MoveViewUp) = S.current . _Just . S.workspace . S.tree %~
+                              T.moveViewUp
         update _ = id
 
 interpretIOActions :: Actions -> IO ()
@@ -133,7 +137,8 @@ keyHandlers =
   ,((fromList [WlcBitModAlt],keysym_s),return Split)
   ,((fromList [WlcBitModAlt],keysym_d),return (Move Down))
   ,((fromList [WlcBitModAlt],keysym_u),return (Move Up))
-  ,((fromList [WlcBitModAlt],keysym_space),return $ Cycle)]
+  ,((fromList [WlcBitModAlt],keysym_space),return $ Cycle)
+  ,((fromList [WlcBitModAlt],keysym_i),return $ MoveViewUp)]
 
 -- | react to a new view
 viewCreated :: (Reflex t,MonadHold t m,MonadFix m)

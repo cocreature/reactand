@@ -73,6 +73,7 @@ data Action
   | ViewWorkspace String
   | ChangeResolution WLCOutputPtr WLCSize
   | Cycle
+  | MoveViewUp
 
 type Actions = [Action]
 

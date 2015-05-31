@@ -17,6 +17,7 @@ module Tree
   ,split
   ,moveDown
   ,moveUp
+  ,moveViewUp
   ,parentsT
   ,layout
   ,treeElements
@@ -126,3 +127,26 @@ moveUp (TreeZipper t ((ls,l,rs):ps)) =
                             ls
                             rs)))
     ps
+
+moveViewUp :: TreeZipper l a -> TreeZipper l a
+moveViewUp tz@(TreeZipper _ []) = tz
+moveViewUp tz@(TreeZipper (Tree _ Nothing) _) = tz
+moveViewUp (TreeZipper (Tree l (Just z)) ((ls,lp,rs):p)) =
+  case removeFocused z of
+    Just z' ->
+      TreeZipper
+        (Tree l (Just z'))
+        ((z ^. focusL : ls,lp,rs) :
+         p)
+    Nothing ->
+      TreeZipper
+        (Tree lp
+              (Just (ListZipper (z ^. focusL)
+                                ls
+                                rs)))
+        p
+
+removeFocused :: ListZipper a -> Maybe (ListZipper a)
+removeFocused (ListZipper _ [] []) = Nothing
+removeFocused (ListZipper _ (x:xs) rs) = Just $ ListZipper x xs rs
+removeFocused (ListZipper _ [] (x:xs)) = Just $ ListZipper x [] xs
