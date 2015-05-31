@@ -58,18 +58,18 @@ reactand e =
        mergeWith (>>) (updated stacksetChanges' : [interpretIOActions <$> actions])
 
 interpretActions :: Actions
-                 -> (S.StackSet String DefaultLayout WLCViewPtr WLCOutputPtr)
-                 -> (S.StackSet String DefaultLayout WLCViewPtr WLCOutputPtr)
+                 -> (S.StackSet String WLCViewPtr WLCOutputPtr)
+                 -> (S.StackSet String WLCViewPtr WLCOutputPtr)
 interpretActions acts stackset =
   foldr (\x acc -> update x . acc) id acts $
   stackset
   where update :: Action
-               -> S.StackSet String DefaultLayout WLCViewPtr WLCOutputPtr
-               -> S.StackSet String DefaultLayout WLCViewPtr WLCOutputPtr
+               -> S.StackSet String WLCViewPtr WLCOutputPtr
+               -> S.StackSet String WLCViewPtr WLCOutputPtr
         update (CreateOutput output res) =
           S.createOutput output res
         update (InsertView view output) =
-          insertViewInOutput DefaultLayout view output
+          insertViewInOutput defaultLayout  view output
         update (ChangeResolution output new) =
           S.changeResolution output new
         update (DestroyView v) = S.deleteFromStackSet v

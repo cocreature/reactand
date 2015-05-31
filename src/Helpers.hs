@@ -33,14 +33,14 @@ getModifiers (WLCModifiers _ mods) =
                       0)
                    (enumFrom WlcBitModShift))
 
-emptyStackSet :: StackSet String DefaultLayout a sid
+emptyStackSet :: StackSet String a sid
 emptyStackSet =
   StackSet Nothing
            []
            (fmap (\i ->
                     (Workspace (show i)
                                (2 ^ i)
-                               (TreeZipper (Tree DefaultLayout Nothing)
+                               (TreeZipper (Tree defaultLayout Nothing)
                                            [])))
                  [0 :: Int .. 1])
 

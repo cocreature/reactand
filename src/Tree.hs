@@ -56,7 +56,7 @@ makeLenses ''ListZipper
 data TreeZipper l a =
   TreeZipper {_focusT :: Tree l a
              ,_parentsT :: [([Either a (Tree l a)],l,[Either a (Tree l a)])]}
-  deriving (Show,Read,Eq,Ord)
+   deriving (Show,Read,Eq,Ord)
 
 instance (Pretty (Tree l a),Pretty a,Pretty l) => Pretty (TreeZipper l a) where
   pPrint (TreeZipper f p) =

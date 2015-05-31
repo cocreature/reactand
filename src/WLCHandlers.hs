@@ -7,7 +7,7 @@ import           Control.Concurrent.MVar
 import           Control.Lens hiding (view)
 import           Data.Default
 import           Data.Dependent.Sum
-import           Foreign
+import           Foreign hiding (new)
 import           Foreign.C.Types
 import           WLC
 import qualified WLC.Lenses as WLC

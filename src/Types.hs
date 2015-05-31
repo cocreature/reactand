@@ -13,7 +13,6 @@ module Types
   , OutputDestroyed(..)
   , OutputResolution(..)
   , WindowManager
-  , StackSetChange
   , Actions
   , Dir(..)
   , Action(..)
@@ -26,8 +25,6 @@ import Data.Set hiding (split)
 import Reflex
 import Text.XkbCommon
 import WLC
-
-import StackSet (StackSet(..))
 
 data Tag a where
      TKey :: Tag Key
@@ -56,7 +53,6 @@ data OutputDestroyed = OutputDestroyed WLCOutputPtr deriving (Show,Eq,Ord)
 data OutputResolution = OutputResolution WLCOutputPtr WLCSize WLCSize deriving (Show,Eq,Ord)
 
 type WindowManager t m = (Reflex t,MonadHold t m,MonadFix m) => Event t (DSum Tag) -> m (Event t (IO ()))
-type StackSetChange i l a sid = StackSet i l a sid -> StackSet i l a sid
 
 deriveGEq ''Tag
 deriveGCompare ''Tag

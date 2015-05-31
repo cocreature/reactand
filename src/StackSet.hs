@@ -35,6 +35,7 @@ module StackSet
   , tree
   ) where
 
+import LayoutType
 import Control.Lens
 import Data.Function
 import Data.List
@@ -50,13 +51,13 @@ delete' a xs =
     (_,[]) -> (xs,False)
     (us,_:vs) -> (us ++ vs,True)
 
-data StackSet i l a sid =
-  StackSet {_current :: !(Maybe (Screen i l a sid))
-           ,_visible :: [Screen i l a sid]
-           ,_hidden :: [Workspace i l a]}
-  deriving (Show,Read,Eq)
+data StackSet i a sid =
+  StackSet {_current :: !(Maybe (Screen i a sid))
+           ,_visible :: [Screen i a sid]
+           ,_hidden :: [Workspace i a]}
+  deriving (Show,Eq)
 
-instance (Pretty (Screen i l a sid),Pretty (Workspace i l a)) => Pretty (StackSet i l a sid) where
+instance (Pretty (Screen i a sid),Pretty (Workspace i a)) => Pretty (StackSet i a sid) where
   pPrint (StackSet c v h) =
     text "StackSet" $$
     nest 2
@@ -67,13 +68,13 @@ instance (Pretty (Screen i l a sid),Pretty (Workspace i l a)) => Pretty (StackSe
           text "hidden =" <+>
           pPrint h)
 
-data Workspace i l a =
+data Workspace i a =
   Workspace {_tag :: !i
             ,_mask :: !CUInt
-            ,_tree :: TreeZipper l a}
-  deriving (Show,Read,Eq)
+            ,_tree :: TreeZipper Layout a}
+  deriving (Show,Eq)
 
-instance (Pretty i,Pretty (TreeZipper l a)) => Pretty (Workspace i l a) where
+instance (Pretty i,Pretty (TreeZipper Layout a)) => Pretty (Workspace i a) where
   pPrint (Workspace i m t) =
     text "Workspace" $$
     nest 2
@@ -87,13 +88,13 @@ instance (Pretty i,Pretty (TreeZipper l a)) => Pretty (Workspace i l a) where
 pPrintShow :: Show a => a -> Doc
 pPrintShow = text . show
 
-data Screen i l a sid =
-  Screen {_workspace :: !(Workspace i l a)
+data Screen i a sid =
+  Screen {_workspace :: !(Workspace i a)
          ,_screen :: !sid
          ,_resolution :: !WLCSize}
-  deriving (Show,Read,Eq)
+  deriving (Show,Eq)
 
-instance (Pretty (Workspace i l a),Pretty sid) => Pretty (Screen i l a sid) where
+instance (Pretty (Workspace i a),Pretty sid) => Pretty (Screen i a sid) where
   pPrint (Screen w sid size) =
     text "Screen" $$
     nest 2 (pPrint w $$ pPrint sid $$ pPrintShow size)
@@ -102,12 +103,12 @@ makeLenses ''StackSet
 makeLenses ''Workspace
 makeLenses ''Screen
 
-deleteFromStackSet :: Eq a => a -> StackSet i l a sid -> StackSet i l a sid
+deleteFromStackSet :: Eq a => a -> StackSet i a sid -> StackSet i a sid
 deleteFromStackSet v s = s & current . _Just . workspace %~ deleteFromWorkspace v
                            & visible . mapped . workspace %~ deleteFromWorkspace v
                            & hidden . mapped %~ deleteFromWorkspace v
 
-deleteFromWorkspace :: Eq a => a -> Workspace i l a -> Workspace i l a
+deleteFromWorkspace :: Eq a => a -> Workspace i a -> Workspace i a
 deleteFromWorkspace v ws = ws & tree %~ deleteFromTreeZipper v
 
 deleteFromTreeZipper :: Eq a => a -> TreeZipper l a -> TreeZipper l a
@@ -147,7 +148,7 @@ deleteFromList v = mapMaybe f
 
 
 viewWorkspace :: (Eq i,Eq sid)
-              => i -> StackSet i l a sid -> StackSet i l a sid
+              => i -> StackSet i a sid -> StackSet i a sid
 viewWorkspace _ s@(StackSet Nothing _ _) = s
 viewWorkspace i s@(StackSet (Just currentScreen) visible' _)
   | i == currentScreen ^. workspace . tag = s
@@ -170,7 +171,7 @@ viewWorkspace i s@(StackSet (Just currentScreen) visible' _)
 equating :: (Eq b) => (a -> b) -> a -> a -> Bool
 equating = on (==)
 
-createOutput :: sid -> WLCSize -> StackSet i l a sid -> StackSet i l a sid
+createOutput :: sid -> WLCSize -> StackSet i a sid -> StackSet i a sid
 createOutput _ _ (StackSet _ _ []) = error "No more workspaces available"
 createOutput sid res s@(StackSet Nothing _ (x:xs)) =
   s & current .~ Just (Screen x sid res)
@@ -179,7 +180,7 @@ createOutput sid res s@(StackSet _ visible' (x:xs)) =
   s & visible .~ (Screen x sid res) : visible'
     & hidden .~ xs
 
-removeOutput :: Eq sid => sid -> StackSet i l a sid -> StackSet i l a sid
+removeOutput :: Eq sid => sid -> StackSet i a sid -> StackSet i a sid
 removeOutput sid s =
   StackSet current' visible' (hidden'' ++ hidden' ++ (s ^. hidden))
   where (visible',hidden') =
@@ -192,7 +193,7 @@ removeOutput sid s =
                 (Nothing,return $ screen' ^. workspace)
               | otherwise -> (Just screen',[])
 
-deleteBySid :: Eq sid => sid -> [Screen i l a sid] -> ([Screen i l a sid],[Workspace i l a])
+deleteBySid :: Eq sid => sid -> [Screen i a sid] -> ([Screen i a sid],[Workspace i a])
 deleteBySid sid screens =
   break ((== sid) .
          (view screen))
@@ -200,19 +201,19 @@ deleteBySid sid screens =
   _2 . traverse %~
   (view workspace)
 
-withOutput :: (TreeZipper l a -> b) -> Screen i l a sid -> b
+withOutput :: (TreeZipper Layout a -> b) -> Screen i a sid -> b
 withOutput f s = f $ s ^. workspace . tree
 
-modify :: (TreeZipper l a -> TreeZipper l a)
-       -> StackSet i l a sid
-       -> StackSet i l a sid
+modify :: (TreeZipper Layout a -> TreeZipper Layout a)
+       -> StackSet i a sid
+       -> StackSet i a sid
 modify f s = s & current . _Just . workspace . tree %~ f
 
 modifyWithOutput :: Eq sid
-                 => (TreeZipper l a -> TreeZipper l a)
+                 => (TreeZipper Layout a -> TreeZipper Layout a)
                  -> sid
-                 -> StackSet i l a sid
-                 -> StackSet i l a sid
+                 -> StackSet i a sid
+                 -> StackSet i a sid
 modifyWithOutput f sid s =
   s & current . _Just %~
       (\cur -> modifyOutput f
@@ -221,31 +222,31 @@ modifyWithOutput f sid s =
     & visible %~map (modifyOutput f sid)
 
 modifyOutput :: Eq sid
-             => (TreeZipper l a -> TreeZipper l a)
+             => (TreeZipper Layout a -> TreeZipper Layout a)
              -> sid
-             -> Screen i l a sid
-             -> Screen i l a sid
+             -> Screen i a sid
+             -> Screen i a sid
 modifyOutput f sid s
   | sid == s ^. screen =
     s & workspace . tree .~
     withOutput f s
   | otherwise = s
 
-modify' :: (ListZipper (Either a (Tree l a)) -> ListZipper (Either a (Tree l a)))
-        -> StackSet i l a sid
-        -> StackSet i l a sid
+modify' :: (ListZipper (Either a (Tree Layout a)) -> ListZipper (Either a (Tree Layout a)))
+        -> StackSet i a sid
+        -> StackSet i a sid
 modify' f = modify (\tz -> tz & focusT . treeElements . _Just %~ f)
 
-focusUp :: StackSet i l a sid -> StackSet i l a sid
+focusUp :: StackSet i a sid -> StackSet i a sid
 focusUp = modify' focusUp'
 
-focusDown :: StackSet i l a sid -> StackSet i l a sid
+focusDown :: StackSet i a sid -> StackSet i a sid
 focusDown = modify' focusDown'
 
-swapUp :: StackSet i l a sid -> StackSet i l a sid
+swapUp :: StackSet i a sid -> StackSet i a sid
 swapUp    = modify' swapUp'
 
-swapDown :: StackSet i l a sid -> StackSet i l a sid
+swapDown :: StackSet i a sid -> StackSet i a sid
 swapDown  = modify' (reverseStack . swapUp' . reverseStack)
 
 swapUp' :: ListZipper a -> ListZipper a
@@ -260,22 +261,22 @@ focusDown' = reverseStack . focusUp' . reverseStack
 reverseStack :: ListZipper a -> ListZipper a
 reverseStack (ListZipper t ls rs) = ListZipper t rs ls
 
-nextOutput :: StackSet i l a sid -> StackSet i l a sid
+nextOutput :: StackSet i a sid -> StackSet i a sid
 nextOutput (StackSet c [] h) = (StackSet c [] h)
 nextOutput (StackSet Nothing (x:xs) h) = (StackSet (Just x) xs h)
 nextOutput (StackSet (Just s) (x:xs) h) = (StackSet (Just x) (xs++ [s]) h)
 
-prevOutput :: StackSet i l a sid -> StackSet i l a sid
+prevOutput :: StackSet i a sid -> StackSet i a sid
 prevOutput (StackSet c [] h) = (StackSet c [] h)
 prevOutput (StackSet Nothing xs h) = (StackSet (Just (last xs)) (init xs) h)
 prevOutput (StackSet (Just s) xs h) = (StackSet (Just (last xs)) (s: init xs) h)
 
-changeResolution' :: Eq sid => sid -> WLCSize -> Screen i l a sid -> Screen i l a sid
+changeResolution' :: Eq sid => sid -> WLCSize -> Screen i a sid -> Screen i a sid
 changeResolution' sid res s
   | sid == s ^. screen = s & resolution .~ res
   | otherwise = s
 
-changeResolution :: Eq sid => sid -> WLCSize -> StackSet i l a sid -> StackSet i l a sid
+changeResolution :: Eq sid => sid -> WLCSize -> StackSet i a sid -> StackSet i a sid
 changeResolution sid res s =
   s &
   current . _Just %~ changeResolution' sid res &
