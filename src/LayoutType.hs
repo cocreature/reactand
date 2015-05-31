@@ -74,7 +74,7 @@ tallSplit total i (WLCSize w h)
   | total == 0 = error "No windows found"
   | i == 0 =
     WLCGeometry (WLCOrigin 0 0)
-                (WLCSize (w `div` 2) h)
+                (WLCSize (w `div` (if total == 1 then 1 else 2)) h)
   | otherwise =
     WLCGeometry
       (WLCOrigin w'
@@ -92,7 +92,7 @@ wideLayout = simpleLayout wideSplit "Wide"
 wideSplit :: CInt -> CInt -> WLCSize -> WLCGeometry
 wideSplit total i (WLCSize w h)
   | total == 0 = error "No windows found"
-  | i == 0 = WLCGeometry (WLCOrigin 0 0) (WLCSize w (h `div` 2))
+  | i == 0 = WLCGeometry (WLCOrigin 0 0) (WLCSize w (h `div` (if total == 1 then 1 else 2)))
   | otherwise = WLCGeometry (WLCOrigin ((i-1) * fromIntegral deltaX) h') (WLCSize deltaX (fromIntegral h'))
   where deltaX = w `div` (fromIntegral total -1)
         h' = fromIntegral h `div` 2
