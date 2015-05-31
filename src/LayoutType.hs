@@ -25,11 +25,11 @@ defaultLayout =
   Layout (\size' stack ->
             let stackList = integrate stack
             in zip stackList
-                   (map (\(_,i) ->
+                   (map (\i ->
                            calculateGeometry (fromIntegral $ length stackList)
                                              i
                                              size')
-                        (zip stackList [0 ..])))
+                        [0 ..]))
          "Default"
 
 calculateGeometry :: CInt -> CInt -> WLCSize -> WLCGeometry
