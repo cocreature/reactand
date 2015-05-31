@@ -122,9 +122,9 @@ keyHandlers ::  [((Set WLCModifier,Keysym),Actions)]
 keyHandlers =
   [((fromList [WlcBitModAlt],keysym_Return),return $ SpawnCommand "weston-terminal")
   ,((fromList [WlcBitModAlt],keysym_n),return (Focus Down))
-  ,((fromList [WlcBitModAlt],keysym_m),return (Focus Up))
+  ,((fromList [WlcBitModAlt],keysym_r),return (Focus Up))
   ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_N),return (Swap Down))
-  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_M),return (Swap Up))
+  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_R),return (Swap Up))
   ,((fromList [WlcBitModAlt],keysym_e),return $ (Output Up))
   ,((fromList [WlcBitModAlt],keysym_a),return $ (Output Down))
   ,((fromList [WlcBitModAlt],keysym_0),return $ ViewWorkspace "0")
