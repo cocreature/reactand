@@ -53,8 +53,8 @@ delete' a xs =
 
 data StackSet i a sid =
   StackSet {_current :: !(Maybe (Screen i a sid))
-           ,_visible :: [Screen i a sid]
-           ,_hidden :: [Workspace i a]}
+           ,_visible :: ![Screen i a sid]
+           ,_hidden :: ![Workspace i a]}
   deriving (Show,Eq)
 
 instance (Pretty (Screen i a sid),Pretty (Workspace i a)) => Pretty (StackSet i a sid) where
@@ -71,7 +71,7 @@ instance (Pretty (Screen i a sid),Pretty (Workspace i a)) => Pretty (StackSet i 
 data Workspace i a =
   Workspace {_tag :: !i
             ,_mask :: !CUInt
-            ,_tree :: TreeZipper Layout a}
+            ,_tree :: !(TreeZipper Layout a)}
   deriving (Show,Eq)
 
 instance (Pretty i,Pretty (TreeZipper Layout a)) => Pretty (Workspace i a) where

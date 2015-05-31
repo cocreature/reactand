@@ -30,14 +30,14 @@ import Control.Lens
 -- | l is an annotation at a branch
 -- | a is the type of a leaf
 data Tree l a =
-  Tree {_layout :: l
-       ,_treeElements :: (Maybe (ListZipper (Either a (Tree l a))))}
+  Tree {_layout :: !l
+       ,_treeElements :: !(Maybe (ListZipper (Either a (Tree l a))))}
   deriving (Show,Read,Eq,Ord)
 
 data ListZipper a =
   ListZipper {_focusL :: !a
-             ,_leftL :: [a]
-             ,_rightL :: [a]}
+             ,_leftL :: ![a]
+             ,_rightL :: ![a]}
   deriving (Show,Read,Eq,Ord)
 
 instance Pretty a => Pretty (ListZipper a) where
@@ -55,8 +55,8 @@ makeLenses ''Tree
 makeLenses ''ListZipper
 
 data TreeZipper l a =
-  TreeZipper {_focusT :: Tree l a
-             ,_parentsT :: [([Either a (Tree l a)],l,[Either a (Tree l a)])]}
+  TreeZipper {_focusT :: !(Tree l a)
+             ,_parentsT :: ![([Either a (Tree l a)],l,[Either a (Tree l a)])]}
    deriving (Show,Read,Eq,Ord)
 
 instance (Pretty (Tree l a),Pretty a,Pretty l) => Pretty (TreeZipper l a) where
