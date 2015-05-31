@@ -70,5 +70,6 @@ cycleLayout :: Layout -> Layout
 cycleLayout (Layout _ "Tabbed") = horizontalLayout
 cycleLayout (Layout _ "Horizontal") = verticalLayout
 cycleLayout (Layout _ "Vertical") = tallLayout
-cycleLayout (Layout _ "Tall") = tabbedLayout
+cycleLayout (Layout _ "Tall") = wideLayout
+cycleLayout (Layout _ "Wide") = tabbedLayout
 cycleLayout _ = defaultLayout
