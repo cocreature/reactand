@@ -15,7 +15,7 @@ import           Text.XkbCommon
 import           WLC
 import           Data.GADT.Compare
 
-import           Layout
+import           LayoutType
 import           StackSet
 import           Tree
 
@@ -40,7 +40,7 @@ emptyStackSet =
            (fmap (\i ->
                     (Workspace (show i)
                                (2 ^ i)
-                               (TreeZipper (Tree defaultLayout Nothing)
+                               (TreeZipper (Tree horizontalLayout Nothing)
                                            [])))
                  [0 :: Int .. 1])
 

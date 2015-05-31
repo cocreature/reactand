@@ -2,12 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Layout 
-  (defaultLayout
-  ,relayout
-  ,cycleLayout
-  ,insertViewInOutput
-  ) where
+module Layout (relayout, cycleLayout, insertViewInOutput) where
 
 import Control.Lens
 import StackSet
@@ -72,8 +67,7 @@ insertViewInOutput l v output s =
                    s
 
 cycleLayout :: Layout -> Layout
-cycleLayout (Layout _ "Default") = tabbedLayout
 cycleLayout (Layout _ "Tabbed") = horizontalLayout
 cycleLayout (Layout _ "Horizontal") = verticalLayout
-cycleLayout (Layout _ "Vertical") = defaultLayout
+cycleLayout (Layout _ "Vertical") = tabbedLayout
 cycleLayout _ = defaultLayout

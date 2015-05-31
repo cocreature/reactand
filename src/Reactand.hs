@@ -17,9 +17,10 @@ import           WLC
 
 import           Helpers
 import           Layout
+import           LayoutType
 import qualified StackSet as S
-import           Types
 import qualified Tree as T
+import           Types
 
 -- | reactive window manager
 reactand :: forall t m. WindowManager t m
@@ -69,7 +70,7 @@ interpretActions acts stackset =
         update (CreateOutput output res) =
           S.createOutput output res
         update (InsertView view output) =
-          insertViewInOutput defaultLayout  view output
+          insertViewInOutput horizontalLayout  view output
         update (ChangeResolution output new) =
           S.changeResolution output new
         update (DestroyView v) = S.deleteFromStackSet v
