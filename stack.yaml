@@ -1,7 +1,9 @@
 flags: {}
 packages:
 - '.'
-- '../wlc-hs'
+- location:
+    git: https://github.com/cocreature/wlc-hs
+    commit: 9fdd8b1
 extra-deps:
 - dependent-map-0.1.1.3
 - dependent-sum-0.2.1.0
