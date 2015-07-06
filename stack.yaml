@@ -1,6 +1,5 @@
-flags: {}
 packages:
-- '.'
+- .
 - location:
     git: https://github.com/cocreature/wlc-hs
     commit: db3186765daa3cb087c13da9160a6e95965cec23
@@ -15,4 +14,4 @@ extra-deps:
 - data-flags-0.0.3.1
 - storable-record-0.0.3
 - utility-ht-0.0.10
-resolver: nightly-2015-06-09
+resolver: nightly-2015-06-28
