@@ -4,16 +4,18 @@ module Helpers
   , getModifiers
   , emptyStackSet
   , singleton'
+  , modToWLCMod
   ) where
 
 import           Data.Bits
 import qualified Data.Dependent.Map as DMap
 import           Data.Dependent.Sum
+import           Data.GADT.Compare
 import           Data.Set hiding (filter)
+import           EmacsKeys
 import           Foreign.C.Types
 import           Text.XkbCommon
 import           WLC
-import           Data.GADT.Compare
 
 import           LayoutType
 import           StackSet
@@ -47,3 +49,8 @@ emptyStackSet =
 -- | generate singleton map from dsum.
 singleton' :: GCompare k => DSum k -> DMap.DMap k
 singleton' = DMap.fromList . (:[])
+
+modToWLCMod :: Modifier -> WLCModifier
+modToWLCMod Shift = WlcBitModShift
+modToWLCMod Meta = WlcBitModAlt
+modToWLCMod Ctrl = WlcBitModCtrl

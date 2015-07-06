@@ -72,6 +72,7 @@ executable reactand
                      , transformers >= 0.4 && < 0.5
                      , wlc-hs >= 0.1 && < 0.2
                      , xkbcommon >= 0.0 && < 0.1
+                     , emacs-keys >= 0.0.2 && < 0.1
   
   -- Directories containing source files.
   hs-source-dirs:      src

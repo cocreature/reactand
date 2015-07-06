@@ -7,12 +7,13 @@ module Reactand where
 import           Control.Lens hiding (view)
 import           Control.Monad
 import           Control.Monad.Fix
+import           Data.Bifunctor
 import           Data.Set hiding (map,filter,foldr,split)
+import           EmacsKeys
 import           Reflex
 import qualified System.Process as P
-import           Text.PrettyPrint.HughesPJClass
+import           Text.PrettyPrint.HughesPJClass hiding (first)
 import           Text.XkbCommon
-import           Text.XkbCommon.KeysymList
 import           WLC
 
 import           Helpers
@@ -119,30 +120,30 @@ key handlers =
         f act (Just act') = Just (act >> act')
 
 keyHandlers ::  [((Set WLCModifier,Keysym),Actions)]
-keyHandlers =
-  [((fromList [WlcBitModAlt],keysym_Return),return $ SpawnCommand "weston-terminal")
-  ,((fromList [WlcBitModAlt],keysym_n),return (Focus Down))
-  ,((fromList [WlcBitModAlt],keysym_r),return (Focus Up))
-  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_N),return (Swap Down))
-  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_R),return (Swap Up))
-  ,((fromList [WlcBitModAlt],keysym_e),return $ (Output Up))
-  ,((fromList [WlcBitModAlt],keysym_a),return $ (Output Down))
-  ,((fromList [WlcBitModAlt],keysym_0),return $ ViewWorkspace "0")
-  ,((fromList [WlcBitModAlt],keysym_1),return $ ViewWorkspace "1")
-  ,((fromList [WlcBitModAlt],keysym_2),return $ ViewWorkspace "2")
-  ,((fromList [WlcBitModAlt],keysym_3),return $ ViewWorkspace "3")
-  ,((fromList [WlcBitModAlt],keysym_4),return $ ViewWorkspace "4")
-  ,((fromList [WlcBitModAlt],keysym_5),return $ ViewWorkspace "5")
-  ,((fromList [WlcBitModAlt],keysym_6),return $ ViewWorkspace "6")
-  ,((fromList [WlcBitModAlt],keysym_7),return $ ViewWorkspace "7")
-  ,((fromList [WlcBitModAlt],keysym_8),return $ ViewWorkspace "8")
-  ,((fromList [WlcBitModAlt],keysym_9),return $ ViewWorkspace "9")
-  ,((fromList [WlcBitModAlt],keysym_s),return Split)
-  ,((fromList [WlcBitModAlt],keysym_d),return (Move Down))
-  ,((fromList [WlcBitModAlt],keysym_u),return (Move Up))
-  ,((fromList [WlcBitModAlt],keysym_space),return $ Cycle)
-  ,((fromList [WlcBitModAlt],keysym_i),return $ MoveViewUp)
-  ,((fromList [WlcBitModAlt,WlcBitModShift],keysym_X),return $ Close)]
+keyHandlers = fmap (first (bimap (fromList . fmap modToWLCMod) head)) $
+  [($(mkEmacsKeys "M-Return"),return $ SpawnCommand "weston-terminal")
+  ,($(mkEmacsKeys "M-n"),return (Focus Down))
+  ,($(mkEmacsKeys "M-r"),return (Focus Up))
+  ,($(mkEmacsKeys "M-S-n"),return (Swap Down))
+  ,($(mkEmacsKeys "M-S-r"),return (Swap Up))
+  ,($(mkEmacsKeys "M-e"),return $ (Output Up))
+  ,($(mkEmacsKeys "M-a"),return $ (Output Down))
+  ,($(mkEmacsKeys "M-0"),return $ ViewWorkspace "0")
+  ,($(mkEmacsKeys "M-1"),return $ ViewWorkspace "1")
+  ,($(mkEmacsKeys "M-2"),return $ ViewWorkspace "2")
+  ,($(mkEmacsKeys "M-3"),return $ ViewWorkspace "3")
+  ,($(mkEmacsKeys "M-4"),return $ ViewWorkspace "4")
+  ,($(mkEmacsKeys "M-5"),return $ ViewWorkspace "5")
+  ,($(mkEmacsKeys "M-6"),return $ ViewWorkspace "6")
+  ,($(mkEmacsKeys "M-7"),return $ ViewWorkspace "7")
+  ,($(mkEmacsKeys "M-8"),return $ ViewWorkspace "8")
+  ,($(mkEmacsKeys "M-9"),return $ ViewWorkspace "9")
+  ,($(mkEmacsKeys "M-s"),return Split)
+  ,($(mkEmacsKeys "M-d"),return (Move Down))
+  ,($(mkEmacsKeys "M-u"),return (Move Up))
+  ,($(mkEmacsKeys "M-space"),return $ Cycle)
+  ,($(mkEmacsKeys "M-i"),return $ MoveViewUp)
+  ,($(mkEmacsKeys "M-S-x"),return $ Close)]
 
 -- | react to a new view
 viewCreated :: (Reflex t,MonadHold t m,MonadFix m)

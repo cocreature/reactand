@@ -14,4 +14,5 @@ extra-deps:
 - data-flags-0.0.3.1
 - storable-record-0.0.3
 - utility-ht-0.0.10
+- emacs-keys-0.0.2.0
 resolver: nightly-2015-06-28
