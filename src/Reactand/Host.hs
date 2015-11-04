@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 
-module Host
+module Reactand.Host
   ( host
   ) where
 
@@ -8,12 +8,9 @@ import Control.Concurrent.Chan
 import Control.Concurrent.MVar
 import Control.Monad
 import Control.Monad.IO.Class
-import Data.Dependent.Sum
 import Data.IORef
-import Reflex.Host.Class
-import Reflex.Spider
 
-import Types
+import Reactand.Types
 
 -- | reflex host for the window manager
 host :: Chan (DSum Tag) -> MVar (IO ()) -> (forall t m. WindowManager t m) -> IO ()

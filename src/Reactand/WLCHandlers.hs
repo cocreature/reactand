@@ -1,4 +1,4 @@
-module WLCHandlers
+module Reactand.WLCHandlers
   ( runWLC
   ) where
 
@@ -6,7 +6,6 @@ import           Control.Concurrent.Chan
 import           Control.Concurrent.MVar
 import           Control.Lens hiding (view)
 import           Data.Default
-import           Data.Dependent.Sum
 import           Foreign hiding (new)
 import           Foreign.C.Types
 import           WLC
@@ -14,10 +13,10 @@ import qualified WLC.Lenses as WLC
 import           WLC.Lenses hiding (view,output)
 import           WLC.Wrapper
 
-import           Helpers
-import           Types
+import           Reactand.Helpers
+import           Reactand.Types
 
-runWLC :: Chan (DSum Tag) -> MVar (IO ()) -> IO ()
+runWLC :: Chan Event -> MVar (IO ()) -> IO ()
 runWLC messages action = do
   keyboardKeyW <- wrapKey (kKey messages action)
   viewCreatedW <- wrapCreated (vCreated messages action)
@@ -42,32 +41,33 @@ runWLC messages action = do
   freeHaskellFunPtr outputCreatedW
   freeHaskellFunPtr outputDestroyedW
 
-kKey :: Chan (DSum Tag)
+kKey :: Chan Event
      -> MVar (IO ())
      -> WLCHandle
      -> CUInt
      -> WLCModifiersPtr
      -> CUInt
-     -> CUInt
      -> WLCKeyStateBit
      -> IO CBool
-kKey messages action _view _ modifiersPtr _ symBit keyStateBit =
+kKey messages action _view _ modifiersPtr symBit keyStateBit =
   do mods <- getModifiers <$> modifiers
+     sym <- symIO
      writeChan messages
-               (TKey :=>
+               (EvKey $
                 Key (getKeyState keyStateBit) sym mods)
      act <- takeMVar action
      act
      return 1
-  where sym = getSym symBit
+  where symIO = getSym symBit modifiersPtr
         modifiers = peek modifiersPtr
 
-vCreated :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> IO CBool
+vCreated :: Chan Event -> MVar (IO ()) -> WLCHandle -> IO CBool
 vCreated messages action view =
   do output <- wlcViewGetOutput (WLCViewPtr view)
      writeChan messages
-               (TViewCreated :=>
-                ViewCreated (WLCViewPtr view) (WLCOutputPtr output))
+               (EvViewCreated $
+                ViewCreated (WLCViewPtr view)
+                            (WLCOutputPtr output))
      act <- takeMVar action
      act
      return 1
@@ -78,34 +78,38 @@ vFocus view focus =
                      WlcBitActivated
                      (focus /= 0)
 
-vDestroyed :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> IO ()
+vDestroyed :: Chan Event -> MVar (IO ()) -> WLCHandle -> IO ()
 vDestroyed messages action view =
-  do writeChan messages (TViewDestroyed :=> ViewDestroyed (WLCViewPtr view))
+  do writeChan messages (EvViewDestroyed $ ViewDestroyed (WLCViewPtr view))
      act <- takeMVar action
      act
 
-oCreated :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> IO CBool
+oCreated :: Chan Event -> MVar (IO ()) -> WLCHandle -> IO CBool
 oCreated messages action output =
   do res <- wlcOutputGetResolution (WLCOutputPtr output)
      writeChan messages
-               (TOutputCreated :=>
-                OutputCreated (WLCOutputPtr output) res)
+               (EvOutputCreated $
+                OutputCreated (WLCOutputPtr output)
+                              res)
      act <- takeMVar action
      act
      return 1
 
-oDestroyed :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> IO ()
+oDestroyed :: Chan Event -> MVar (IO ()) -> WLCHandle -> IO ()
 oDestroyed messages action output =
   do writeChan messages
-               (TOutputDestroyed :=>
-                OutputDestroyed (WLCOutputPtr output))
+               (EvOutputDestroyed $ OutputDestroyed (WLCOutputPtr output))
      act <- takeMVar action
      act
 
-oResolution :: Chan (DSum Tag) -> MVar (IO ()) -> WLCHandle -> WLCSizePtr -> WLCSizePtr -> IO ()
+oResolution :: Chan Event -> MVar (IO ()) -> WLCHandle -> WLCSizePtr -> WLCSizePtr -> IO ()
 oResolution messages action output old new =
   do old' <- peek old
      new' <- peek new
-     writeChan messages (TOutputResolution :=> OutputResolution (WLCOutputPtr output) old' new')
+     writeChan messages
+               (EvOutputResolution $
+                OutputResolution (WLCOutputPtr output)
+                                 old'
+                                 new')
      act <- takeMVar action
      act

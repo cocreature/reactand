@@ -3,26 +3,26 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Reactand where
+module Reactand.Reactand where
 
 import           Control.Lens hiding (view)
 import           Control.Monad
 import           Control.Monad.Fix
 import           Data.Bifunctor
 import           Data.Set hiding (map,filter,foldr,split)
+import           Debug.Trace
 import           EmacsKeys
-import           Reflex
 import qualified System.Process as P
 import           Text.PrettyPrint.HughesPJClass hiding (first)
 import           Text.XkbCommon
 import           WLC
 
-import           Helpers
-import           Layout
-import           LayoutType
-import qualified StackSet as S
-import qualified Tree as T
-import           Types
+import           Reactand.Helpers
+import           Reactand.Layout
+import           Reactand.LayoutType
+import qualified Reactand.StackSet as S
+import qualified Reactand.Tree as T
+import           Reactand.Types
 
 -- | reactive window manager
 reactand :: forall t m. WindowManager t m
@@ -112,7 +112,7 @@ key :: (Reflex t,MonadHold t m,MonadFix m)
 key handlers =
   return .
   fmapMaybe (\case
-               Key WlcKeyStatePressed sym mods ->
+               Key WlcKeyStatePressed sym mods -> trace (keysymName sym) $
                  foldr f Nothing $
                  map snd $
                  filter (\((mods',sym'),_) -> mods == mods' && sym == sym') handlers

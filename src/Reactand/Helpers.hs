@@ -1,28 +1,24 @@
-module Helpers
+module Reactand.Helpers
   ( getSym
   , getKeyState
   , getModifiers
   , emptyStackSet
-  , singleton'
   , modToWLCMod
   ) where
 
 import           Data.Bits
-import qualified Data.Dependent.Map as DMap
-import           Data.Dependent.Sum
-import           Data.GADT.Compare
 import           Data.Set hiding (filter)
 import           EmacsKeys
 import           Foreign.C.Types
 import           Text.XkbCommon
 import           WLC
 
-import           LayoutType
-import           StackSet
-import           Tree
+import           Reactand.LayoutType
+import           Reactand.StackSet
+import           Reactand.Tree
 
-getSym :: CUInt -> Keysym
-getSym sym = Keysym (fromIntegral sym)
+getSym :: CUInt -> WLCModifiersPtr -> IO Keysym
+getSym = wlcKeyboardGetKeysymForKey
 
 getKeyState :: WLCKeyStateBit -> WLCKeyState
 getKeyState b = toEnum (fromIntegral b)
@@ -45,10 +41,6 @@ emptyStackSet =
                                (TreeZipper (Tree horizontalLayout Nothing)
                                            [])))
                  [0 :: Int .. 1])
-
--- | generate singleton map from dsum.
-singleton' :: GCompare k => DSum k -> DMap.DMap k
-singleton' = DMap.fromList . (:[])
 
 modToWLCMod :: Modifier -> WLCModifier
 modToWLCMod Shift = WlcBitModShift

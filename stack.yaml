@@ -1,20 +1,11 @@
 packages:
 - .
-- location:
-    git: https://github.com/cocreature/wlc-hs
-    commit: db3186765daa3cb087c13da9160a6e95965cec23
-- location:
-    git: https://github.com/ryantrinkle/reflex
-    commit: 87605ca92b9a03727f065240cda60f0b6f372b4f
+- ../wlc-hs
 extra-deps:
-- dependent-map-0.1.1.3
-- dependent-sum-0.2.1.0
-- dependent-sum-template-0.0.0.3
-- ref-tf-0.4
-- these-0.4.1
 - xkbcommon-0.0.1
 - data-flags-0.0.3.1
 - storable-record-0.0.3
-- utility-ht-0.0.10
+- utility-ht-0.0.11
 - emacs-keys-0.0.2.0
-resolver: nightly-2015-06-28
+- mvc-1.1.0
+resolver: lts-3.12

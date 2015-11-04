@@ -5,7 +5,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveFoldable #-}
 
-module StackSet
+module Reactand.StackSet
   ( TreeZipper(..)
   , StackSet(..)
   , Workspace(..)
@@ -35,15 +35,16 @@ module StackSet
   , tree
   ) where
 
-import LayoutType
 import Control.Lens
 import Data.Function
 import Data.List
 import Data.Maybe
 import Foreign.C.Types
 import Text.PrettyPrint.HughesPJClass
-import Tree
 import WLC
+
+import Reactand.LayoutType
+import Reactand.Tree
 
 delete' :: Eq a => a -> [a] -> ([a],Bool)
 delete' a xs =

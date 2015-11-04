@@ -2,13 +2,14 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Layout (relayout, cycleLayout, insertViewInOutput) where
+module Reactand.Layout (relayout, cycleLayout, insertViewInOutput) where
 
 import Control.Lens
-import StackSet
 import WLC hiding (size)
-import Tree
-import LayoutType
+
+import Reactand.StackSet
+import Reactand.Tree
+import Reactand.LayoutType
 
 relayout :: StackSet i WLCViewPtr WLCOutputPtr -> IO ()
 relayout s =
@@ -50,7 +51,7 @@ layoutTree screenSize mainTree =
                      size')
           in mapM_ recurse arrangement
         recurse ((Left v),geometry) =
-          wlcViewSetGeometry v geometry >>
+          wlcViewSetGeometry v 0 geometry >> -- TODO: figure that out
           wlcViewSetState v WlcBitMaximized True
         recurse ((Right t),geometry) =
           go geometry t

@@ -1,5 +1,5 @@
 {-# LANGUAGE RankNTypes #-}
-module LayoutType
+module Reactand.LayoutType
        (Layout(..)
        ,tabbedLayout
        ,horizontalLayout
@@ -10,8 +10,9 @@ module LayoutType
 
 import Text.PrettyPrint.HughesPJClass
 import Foreign.C.Types
-import Tree
 import WLC
+
+import Reactand.Tree
 
 data Layout =
   Layout {getLayout :: forall a. WLCSize -> ListZipper a -> [(a,WLCGeometry)]

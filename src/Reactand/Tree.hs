@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Tree
+module Reactand.Tree
   (Tree(..)
   ,ListZipper(..)
   ,TreeZipper(..)
