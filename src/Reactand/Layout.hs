@@ -59,19 +59,17 @@ layoutTree screenSize mainTree =
 
 -- | insert the view into workspace that is focused on the output
 insertViewInOutput :: Layout
-                   -> WLCViewPtr
+                   -> a
                    -> WLCOutputPtr
-                   -> StackSet i WLCViewPtr WLCOutputPtr
-                   -> StackSet i WLCViewPtr WLCOutputPtr
+                   -> StackSet i a WLCOutputPtr
+                   -> StackSet i a WLCOutputPtr
 insertViewInOutput l v output s =
   modifyWithOutput (insertUp l v)
                    output
                    s
 
 cycleLayout :: Layout -> Layout
-cycleLayout (Layout _ "Tabbed") = horizontalLayout
 cycleLayout (Layout _ "Horizontal") = verticalLayout
-cycleLayout (Layout _ "Vertical") = tallLayout
-cycleLayout (Layout _ "Tall") = wideLayout
-cycleLayout (Layout _ "Wide") = tabbedLayout
+cycleLayout (Layout _ "Vertical") = tabbedLayout
+cycleLayout (Layout _ "Tabbed") = horizontalLayout
 cycleLayout _ = horizontalLayout

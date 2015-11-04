@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
 module Reactand.WLCHandlers
   ( runWLC
   ) where
@@ -25,13 +27,15 @@ runWLC messages action = do
   outputCreatedW <- wrapCreated (oCreated messages action)
   outputDestroyedW <- wrapDestroyed (oDestroyed messages action)
   outputResolutionW <- wrapResolution (oResolution messages action)
+  pointerMotionW <- wrapMotion pMotion
   _ <- wlcInit (def & WLC.keyboard . keyboardKey .~ keyboardKeyW
                     & WLC.view . viewCreated .~ viewCreatedW
                     & WLC.view . viewFocus .~ viewFocusW
                     & WLC.view . viewDestroyed .~ viewDestroyedW
                     & WLC.output . outputCreated .~ outputCreatedW
                     & WLC.output . outputDestroyed .~ outputDestroyedW
-                    & WLC.output . outputResolution .~ outputResolutionW) []
+                    & WLC.output . outputResolution .~ outputResolutionW
+                    & WLC.pointer . pointerMotion .~ pointerMotionW) []
   wlcRun
   wlcTerminate
   freeHaskellFunPtr keyboardKeyW
@@ -40,6 +44,12 @@ runWLC messages action = do
   freeHaskellFunPtr viewDestroyedW
   freeHaskellFunPtr outputCreatedW
   freeHaskellFunPtr outputDestroyedW
+
+pMotion :: WLCHandle -> CUInt -> WLCOriginPtr -> IO CBool
+pMotion view time origin = wlcPointerSetOrigin origin >> return 0
+
+-- pattern CTrue <- ((0/=) -> True)
+--   CTrue = 0
 
 kKey :: Chan Event
      -> MVar (IO ())

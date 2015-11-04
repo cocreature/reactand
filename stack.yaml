@@ -1,6 +1,7 @@
 packages:
 - .
-- ../wlc-hs
+- location: ../wlc-hs
+  extra-dep: True
 extra-deps:
 - xkbcommon-0.0.1
 - data-flags-0.0.3.1
