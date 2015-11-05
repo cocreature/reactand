@@ -19,6 +19,7 @@ import qualified MVC.Prelude as MVC
 import qualified System.Process as Process
 
 import           Reactand.Helpers
+import           Reactand.Keyhandler
 import           Reactand.Layout
 import           Reactand.LayoutType
 import           Reactand.StackSet hiding (modify)
@@ -109,34 +110,3 @@ handleEvent (EvViewCreated (ViewCreated view out)) s =
   (insertViewInOutput horizontalLayout view out s,[])
 handleEvent (EvViewDestroyed (ViewDestroyed v)) s = (deleteFromStackSet v s,[])
 handleEvent (EvKey k) s = handleKey k s
-
-data Command = Run String
-
-handleKey :: Eq sid
-          => Key
-          -> StackSet String a sid
-          -> (StackSet String a sid, [Command])
-handleKey (Key WlcKeyStatePressed sym mods) s
-  | mods == defaultMod =
-    case sym of
-      Return -> (s,[Run "weston-terminal"])
-      Space ->
-        (s & current . _Just . workspace . tree . focusT . layout %~
-         cycleLayout
-        ,[])
-      Zero -> (viewWorkspace "0" s,[])
-      One -> (viewWorkspace "1" s,[])
-      N -> (focusDown s,[])
-      R -> (focusUp s,[])
-      _ -> (s,[])
-handleKey _ s = (s,[])
-
-pattern Return = Keysym 65293
-pattern Space = Keysym 32
-pattern Zero = Keysym 48
-pattern One = Keysym 49
-pattern N = Keysym 110
-pattern R = Keysym 114
-
-defaultMod :: Set.Set WLCModifier
-defaultMod = Set.fromList [WlcBitModAlt]

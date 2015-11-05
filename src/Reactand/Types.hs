@@ -15,6 +15,7 @@ module Reactand.Types
   , Dir(..)
   , Action(..)
   , Event(..)
+  , Command(..)
   ) where
 
 import Data.Set hiding (split)
@@ -72,3 +73,5 @@ data Action
 type Actions = [Action]
 
 data Dir = Up | Down
+
+data Command = Run String
