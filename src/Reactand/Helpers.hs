@@ -40,7 +40,7 @@ emptyStackSet =
                                (2 ^ i)
                                (TreeZipper (Tree horizontalLayout Nothing)
                                            [])))
-                 [0 :: Int .. 1])
+                 [0 :: Int .. 10])
 
 modToWLCMod :: Modifier -> WLCModifier
 modToWLCMod Shift = WlcBitModShift

@@ -85,3 +85,5 @@ executable reactand
                    , Reactand.Types
                    -- , Reactand.WLCHandlers
                    , Reactand.Tree
+                   , Reactand.Keyhandler
+                   , Reactand.WLCHandlers

@@ -7,6 +7,7 @@ module Reactand.Keyhandler
   ) where
 
 import           Control.Lens
+import           Data.Maybe
 import           Data.Monoid
 import qualified Data.Set as Set
 import           Reactand.Layout
@@ -50,10 +51,20 @@ data Binding a sid =
 
 infixl 8 :=>
 
-defaultBindings :: [Binding a sid]
+defaultBindings :: Eq sid => [Binding a sid]
 defaultBindings =
   [(defaultMod,keysym_Return) :=> (,[Run "weston-terminal"])
   ,(defaultMod,keysym_space)  :=> (,[]) .
    (current . _Just . workspace . tree . focusT . layout %~ cycleLayout)
   ,(defaultMod,keysym_n)      :=> (,[]) . focusDown
-  ,(defaultMod,keysym_r)      :=> (,[]) . focusUp]
+  ,(defaultMod,keysym_r)      :=> (,[]) . focusUp] ++ catMaybes (workspaces 10)
+
+workspaces :: Eq sid => Int -> [Maybe (Binding a sid)]
+workspaces n = map (switchToWorkspace . (`mod` 10)) [1..n']
+  where n' = if n > 10 then 10 else n
+
+switchToWorkspace :: Eq sid => Int -> Maybe (Binding a sid)
+switchToWorkspace n =
+  fmap (\sym -> (defaultMod,sym) :=> ((,[]) . viewWorkspace n'))
+       (keysymFromName n')
+  where n' = show n
